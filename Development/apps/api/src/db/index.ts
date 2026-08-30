@@ -8,6 +8,10 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const poolConfig: PoolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
+      ssl: {
+        ca: process.env.PGSSLROOTCERT,
+        rejectUnauthorized: true,
+      },
     }
   : {
       host: process.env.POSTGRES_HOST || "localhost",
