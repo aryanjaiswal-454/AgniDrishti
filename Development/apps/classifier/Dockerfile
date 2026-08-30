@@ -18,8 +18,9 @@ COPY Development/apps/classifier/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source properly
-COPY Development/apps/classifier/ .
+COPY apps/classifier/ .
 COPY track_a/ ./track_a/
+COPY data/ ./data/
 # Note: /app/data mapping happens at runtime via volumes in docker-compose.
 
 EXPOSE 8000
