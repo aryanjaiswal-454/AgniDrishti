@@ -9,7 +9,8 @@ const poolConfig: PoolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
       ssl: {
-        rejectUnauthorized: false,
+        ca: process.env.PGSSLROOTCERT,
+        rejectUnauthorized: true,
       },
     }
   : {
