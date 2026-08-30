@@ -8,23 +8,16 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const poolConfig: PoolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-
-      // Only use SSL when a CA certificate is provided.
-      ...(process.env.PGSSLROOTCERT
-        ? {
-            ssl: {
-              ca: process.env.PGSSLROOTCERT,
-              rejectUnauthorized: true,
-            },
-          }
-     : {}),
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }
   : {
       host: process.env.POSTGRES_HOST || "localhost",
       port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
-      database: process.env.POSTGRES_DB || "aagnazar",
-      user: process.env.POSTGRES_USER || "aagnazar",
-      password: process.env.POSTGRES_PASSWORD || "aagnazar_dev",
+      database: process.env.POSTGRES_DB || "agnidrishti",
+      user: process.env.POSTGRES_USER || "agnidrishti",
+      password: process.env.POSTGRES_PASSWORD || "agnidrishti_dev",
     };
 
 export const pool = new Pool(poolConfig);
