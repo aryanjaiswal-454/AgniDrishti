@@ -5,21 +5,19 @@ import path from "path";
 // Ensure environment variables from root .env are loaded
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
-const poolConfig: PoolConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        ca: process.env.PGSSLROOTCERT,
-        rejectUnauthorized: true,
-      },
-    }
-  : {
-      host: process.env.POSTGRES_HOST || "localhost",
-      port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
-      database: process.env.POSTGRES_DB || "agnidrishti",
-      user: process.env.POSTGRES_USER || "agnidrishti",
-      password: process.env.POSTGRES_PASSWORD || "agnidrishti_dev",
-    };
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+console.log("PGSSLROOTCERT exists:", !!process.env.PGSSLROOTCERT);
+console.log(
+  "PGSSLROOTCERT length:",
+  process.env.PGSSLROOTCERT?.length
+);
+const poolConfig: PoolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: true,
+    ca: process.env.PGSSLROOTCERT,
+  },
+};
 
 export const pool = new Pool(poolConfig);
 
