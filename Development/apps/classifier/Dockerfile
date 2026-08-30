@@ -14,7 +14,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/track_a/a4:$PYTHONPATH
 
 # Install requirements
-COPY Development/apps/classifier/requirements.txt .
+COPY apps/classifier/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source properly
