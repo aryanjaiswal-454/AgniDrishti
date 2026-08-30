@@ -1,4 +1,4 @@
-# AgniDrishti (FireVigil)
+# AgniDrishti 
 
 ## SIH Problem Statement 26162 — AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources
 
