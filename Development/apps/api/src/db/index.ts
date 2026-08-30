@@ -3,23 +3,46 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
-// Ensure environment variables from root .env are loaded
+// Load environment variables from root .env in development
 dotenv.config({
   path: path.resolve(__dirname, "../../../../.env"),
 });
 
 console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
 
-// Path to Aiven CA certificate
-// ca.pem should be located at:
-// apps/api/ca.pem
+// Aiven CA certificate
 const caPath = path.resolve(process.cwd(), "apps/api/ca.pem");
 
 console.log("Aiven CA certificate exists:", fs.existsSync(caPath));
 console.log("Aiven CA certificate path:", caPath);
 
+if (!fs.existsSync(caPath)) {
+  throw new Error(`Aiven CA certificate not found at: ${caPath}`);
+}
+
+/*
+ * IMPORTANT:
+ * node-postgres replaces the ssl object if sslmode/sslrootcert/etc.
+ * are present inside DATABASE_URL.
+ *
+ * Therefore remove SSL query parameters from DATABASE_URL and
+ * configure SSL explicitly below.
+ */
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not configured");
+}
+
+const dbUrl = new URL(databaseUrl);
+
+dbUrl.searchParams.delete("sslmode");
+dbUrl.searchParams.delete("sslrootcert");
+dbUrl.searchParams.delete("sslcert");
+dbUrl.searchParams.delete("sslkey");
+
 const poolConfig: PoolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl.toString(),
 
   ssl: {
     rejectUnauthorized: true,
@@ -30,13 +53,18 @@ const poolConfig: PoolConfig = {
 export const pool = new Pool(poolConfig);
 
 pool.on("error", (err) => {
-  console.error("Unexpected error on idle PostgreSQL client:", err);
+  console.error(
+    "Unexpected error on idle PostgreSQL client:",
+    err
+  );
 });
 
 /**
  * Execute a parameterized query with the connection pool.
  */
-export async function query<T extends QueryResultRow = any>(
+export async function query<
+  T extends QueryResultRow = any
+>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
@@ -64,7 +92,9 @@ export async function query<T extends QueryResultRow = any>(
  * Execute work inside a single transactional client.
  */
 export async function withTransaction<T>(
-  callback: (client: import("pg").PoolClient) => Promise<T>
+  callback: (
+    client: import("pg").PoolClient
+  ) => Promise<T>
 ): Promise<T> {
   const client = await pool.connect();
 
@@ -85,7 +115,8 @@ export async function withTransaction<T>(
 }
 
 /**
- * Health check to verify database connectivity and PostGIS availability.
+ * Health check to verify database connectivity
+ * and PostGIS availability.
  */
 export async function testDbConnection(): Promise<{
   ok: boolean;
@@ -93,7 +124,9 @@ export async function testDbConnection(): Promise<{
   error?: string;
 }> {
   try {
-    const result = await pool.query<{ postgis_version: string }>(
+    const result = await pool.query<{
+      postgis_version: string;
+    }>(
       "SELECT PostGIS_Version() as postgis_version;"
     );
 
