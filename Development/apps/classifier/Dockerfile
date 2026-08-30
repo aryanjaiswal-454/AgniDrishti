@@ -16,7 +16,7 @@ COPY Development/apps/classifier/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY Development/apps/classifier/ .
-COPY track_a/ ./track_a/
+
 COPY data/ ./data/
 
 EXPOSE 8000
