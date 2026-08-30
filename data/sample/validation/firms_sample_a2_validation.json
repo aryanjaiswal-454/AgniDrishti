@@ -1,0 +1,43 @@
+{
+  "phase": "A2_rule_based_baseline_classifier",
+  "a1_input": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\processed\\firms_sample_a1_enriched.csv",
+  "a2_output": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\processed\\firms_sample_a2_rule_based.csv",
+  "input_rows": 1020,
+  "output_rows": 1020,
+  "all_input_rows_preserved": true,
+  "config": {
+    "density_radius_m": 1000.0,
+    "strong_cluster_min_detections": 10,
+    "low_density_max_detections": 2,
+    "model_version": "rule_based_v1.0"
+  },
+  "classification_counts": {
+    "industrial": 18,
+    "natural": 1002
+  },
+  "sub_class_counts": {
+    "agricultural_burning": 286,
+    "forest_fire": 160,
+    "null": 18,
+    "other_natural": 556
+  },
+  "rule_counts": {
+    "A2_AMBIGUOUS_BUILT_OR_BARE_FALLBACK": 36,
+    "A2_CROPLAND_NATURAL": 286,
+    "A2_DENSE_BUILT_OR_BARE_INDUSTRIAL": 18,
+    "A2_FOREST_NATURAL": 160,
+    "A2_GRASSLAND_NATURAL": 510,
+    "A2_UNKNOWN_LAND_COVER_FALLBACK": 10
+  },
+  "density_level_counts": {
+    "low_density": 237,
+    "moderate_density": 510,
+    "strong_cluster": 273
+  },
+  "strong_cluster_built_or_bare_industrial": 18,
+  "confidence_range": [
+    0.35,
+    0.86
+  ],
+  "track_b_columns_present": []
+}

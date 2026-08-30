@@ -1,0 +1,94 @@
+{
+  "status": "open_follow_up_not_used_for_queue_labels",
+  "lead": {
+    "facility": "Tamil Nadu / Tuticorin Thermal Power Station (TTPS)",
+    "reported_fire_start": "2025-03-15 approximately 22:00 IST (approximately 16:30 UTC); reports describe a cable-gallery/control-room fire.",
+    "coordinates_wgs84": {
+      "latitude": 8.762518,
+      "longitude": 78.175976
+    },
+    "sources": [
+      {
+        "title": "Central Electricity Authority daily maintenance report",
+        "url": "https://npp.gov.in/public-reports/cea/daily/dgr/03-04-2025/dgr10-2025-04-03.pdf",
+        "support": "Lists TUTICORIN TPS Unit 2 outage from 15/03/2025 22:01 with cause 'FIRE IN CABLE GALLERY'."
+      },
+      {
+        "title": "The New Indian Express: Fire at Thoothukudi plant, 630 MW of power generation hit",
+        "url": "https://www.newindianexpress.com/states/tamil-nadu/2025/Mar/17/fire-at-thoothukudi-plant-630-mw-of-power-generation-hit",
+        "support": "Reports the March 15 TTPS fire and response; independent news corroboration."
+      },
+      {
+        "title": "Global Energy Monitor: Tuticorin Thermal Power Station",
+        "url": "https://www.gem.wiki/Tuticorin_Thermal_Power_Station",
+        "support": "Provides reference coordinates 8.762518, 78.175976."
+      }
+    ]
+  },
+  "matching_method": "FIRMS rows dated 2025-03-15 or 2025-03-16 are checked by geodesic distance to the TTPS reference coordinate. This is a lead check only, not incident attribution.",
+  "firms_sample": {
+    "path": "data\\sample\\input\\firms_sample.csv",
+    "total_rows": 1046,
+    "rows_on_2025_03_15_or_2025_03_16": 2,
+    "rows_within_1km_of_ttps": 0,
+    "rows_within_5km_of_ttps": 0,
+    "closest_rows": [
+      {
+        "latitude": 8.86888,
+        "longitude": 78.15579,
+        "acq_date": "2025-03-16",
+        "acq_time": 2026,
+        "instrument": "VIIRS",
+        "satellite": "SNPP",
+        "frp": 3.8,
+        "distance_to_ttps_m": 12033.1093646479
+      },
+      {
+        "latitude": 8.86954,
+        "longitude": 78.15426,
+        "acq_date": "2025-03-16",
+        "acq_time": 2049,
+        "instrument": "VIIRS",
+        "satellite": "NOAA-20",
+        "frp": 1.22,
+        "distance_to_ttps_m": 12137.1775055687
+      }
+    ]
+  },
+  "b3_output": {
+    "path": "data\\sample\\processed\\track_b_b3_classified_anomalies.csv",
+    "total_rows": 1046,
+    "rows_on_2025_03_15_or_2025_03_16": 2,
+    "rows_within_1km_of_ttps": 0,
+    "rows_within_5km_of_ttps": 0,
+    "closest_rows": [
+      {
+        "hotspot_id": "firms_8a57a7c29c9155d8",
+        "latitude": 8.86888,
+        "longitude": 78.15579,
+        "acq_date": "2025-03-16",
+        "acq_time": 2026,
+        "instrument": "VIIRS",
+        "satellite": "SNPP",
+        "frp": 3.8,
+        "sub_class": "gas_flare",
+        "is_anomalous": false,
+        "distance_to_ttps_m": 12033.1093646479
+      },
+      {
+        "hotspot_id": "firms_25b7de35675bf444",
+        "latitude": 8.86954,
+        "longitude": 78.15426,
+        "acq_date": "2025-03-16",
+        "acq_time": 2049,
+        "instrument": "VIIRS",
+        "satellite": "NOAA-20",
+        "frp": 1.22,
+        "sub_class": null,
+        "is_anomalous": false,
+        "distance_to_ttps_m": 12137.1775055687
+      }
+    ]
+  },
+  "follow_up": "Open: inspect any temporally and spatially proximate FIRMS rows with independent imagery/operations evidence before associating them with the TTPS incident. Do not use this lead to relabel the evaluation queue."
+}

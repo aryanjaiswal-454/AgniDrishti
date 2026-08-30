@@ -1,0 +1,148 @@
+{
+  "status": "passed",
+  "investigation_scope": "read-only provenance check; no data or B1/B2/B3 logic was changed",
+  "target_hotspot_ids": [
+    "firms_aaa475fee26d4c1c",
+    "firms_c6e6132bd0d7afdb",
+    "firms_fefe6139f7128536"
+  ],
+  "raw_source": "data\\raw\\firms\\viirs_snpp_sp_thoothukudi_2024_2025.csv",
+  "merged_source": "data\\sample\\input\\firms_sample.csv",
+  "external_review_source": "data\\sample\\processed\\track_b_b3_industrial_fire_external_review.csv",
+  "raw_source_confirmation": {
+    "three_independent_raw_rows_found": 3,
+    "raw_rows": [
+      {
+        "latitude": 8.85297,
+        "longitude": 77.99994,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "N",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      },
+      {
+        "latitude": 8.85682,
+        "longitude": 77.99931,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "N",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      },
+      {
+        "latitude": 8.85762,
+        "longitude": 78.00415,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "N",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      }
+    ],
+    "raw_timestamp_context_row_count": 6,
+    "raw_satellite_field_note": "The raw VIIRS S-NPP endpoint stores satellite=N; the merger normalizes this endpoint identity to satellite=SNPP without changing coordinates or measurements."
+  },
+  "merged_sample_confirmation": {
+    "three_rows_found": 3,
+    "original_2024_2025_baseline_rows": 1020,
+    "merged_rows": [
+      {
+        "latitude": 8.85297,
+        "longitude": 77.99994,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "SNPP",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      },
+      {
+        "latitude": 8.85682,
+        "longitude": 77.99931,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "SNPP",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      },
+      {
+        "latitude": 8.85762,
+        "longitude": 78.00415,
+        "acq_date": "2024-07-19",
+        "acq_time": "750",
+        "instrument": "VIIRS",
+        "satellite": "SNPP",
+        "frp": 44.71,
+        "scan": 0.53,
+        "track": 0.42
+      }
+    ]
+  },
+  "geometry": {
+    "pairwise_centre_distances_m": [
+      {
+        "coordinates": [
+          [
+            8.85297,
+            77.99994
+          ],
+          [
+            8.85682,
+            77.99931
+          ]
+        ],
+        "centre_distance_m": 433.7
+      },
+      {
+        "coordinates": [
+          [
+            8.85297,
+            77.99994
+          ],
+          [
+            8.85762,
+            78.00415
+          ]
+        ],
+        "centre_distance_m": 693.8
+      },
+      {
+        "coordinates": [
+          [
+            8.85682,
+            77.99931
+          ],
+          [
+            8.85762,
+            78.00415
+          ]
+        ],
+        "centre_distance_m": 539.2
+      }
+    ],
+    "reported_scan_track": {
+      "scan": 0.53,
+      "track": 0.42
+    },
+    "interpretation": "The raw NASA response contains three distinct centres separated by roughly one reported footprint scale. This is consistent with adjacent/multi-pixel detections; raw provenance alone cannot prove whether they represent one large physical fire or separate nearby thermal sources."
+  },
+  "conclusion": "genuine separate raw NASA FIRMS detections; not a merge artifact; physically consistent with a multi-pixel thermal event, with physical-event identity remaining inconclusive from FIRMS rows alone",
+  "merge_artifact_signature_scan": {
+    "required": false,
+    "reason": "All three rows independently exist in the raw NASA response before merge, so the conditional systemic scan for merge-created near-duplicates is not applicable."
+  },
+  "implications": {
+    "industrial_fire_candidate_count": "The three B3 candidates are three FIRMS detection rows, not merge-created copies. They may still correspond to one physical incident and should be grouped during human/external review rather than counted as three independently confirmed fires.",
+    "b2_recurrence_and_baselines": "No data-integrity correction is indicated. B2 correctly sees three observations; any future event-level aggregation policy would be a modelling decision, not a merge/dedup repair."
+  }
+}

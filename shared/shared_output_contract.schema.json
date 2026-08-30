@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AgniDrishti shared AIML output record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["hotspot_id", "latitude", "longitude", "primary_class", "sub_class", "land_cover_type", "facility_id", "distance_to_facility_m", "recurrence_count_90d", "z_score_frp", "is_anomalous", "confidence_score", "model_version"],
+  "properties": {
+    "hotspot_id": {"type": "string"},
+    "latitude": {"type": "number"},
+    "longitude": {"type": "number"},
+    "primary_class": {"type": ["string", "null"], "enum": ["industrial", "natural", null]},
+    "sub_class": {"type": ["string", "null"], "enum": ["industrial_fire", "gas_flare", "agricultural_burning", "mining_activity", "forest_fire", "other_natural", null]},
+    "land_cover_type": {"type": ["string", "null"], "enum": ["forest", "cropland", "built_up", "bare", "grassland", null]},
+    "facility_id": {"type": ["string", "null"]},
+    "distance_to_facility_m": {"type": ["number", "null"], "minimum": 0},
+    "recurrence_count_90d": {"type": ["integer", "null"], "minimum": 0},
+    "z_score_frp": {"type": ["number", "null"]},
+    "is_anomalous": {"type": ["boolean", "null"]},
+    "confidence_score": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "model_version": {"type": "string"}
+  }
+}

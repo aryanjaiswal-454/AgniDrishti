@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "input_path": "data\\sample\\processed\\track_b_b3_classified_anomalies.csv",
+  "contract_output_path": "data\\sample\\processed\\track_b_b4_contract_ready.jsonl",
+  "traceability_output_path": "data\\sample\\processed\\track_b_b4_traceability.jsonl",
+  "metadata_path": "data\\sample\\processed\\track_b_b4_contract_metadata.json",
+  "input_rows": 1046,
+  "contract_rows": 1046,
+  "traceability_rows": 1046,
+  "unique_hotspot_ids": 1046,
+  "schema_validation": {
+    "validator": "jsonschema Draft202012Validator",
+    "error_count": 0,
+    "errors": []
+  },
+  "source_b3_sha256_matches_metadata": true,
+  "traceability_matches_b3": true,
+  "unmatched_facility_rows": 282,
+  "null_z_score_rows": 759,
+  "null_recurrence_rows": 282,
+  "insufficient_history_rows": 448,
+  "insufficient_history_guardrail_preserved": true,
+  "classification_method": "rule_based",
+  "evaluation_status": "no_independently_verified_metrics_available",
+  "imagery_enrichment_status": "separate optional utility; not required for contract validation"
+}

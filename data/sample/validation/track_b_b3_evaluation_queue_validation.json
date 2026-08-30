@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "input_path": "data\\sample\\processed\\track_b_b3_classified_anomalies.csv",
+  "output_path": "data\\sample\\processed\\track_b_b3_evaluation_queue.csv",
+  "random_seed": 26162,
+  "queue_rows": 80,
+  "unique_hotspot_ids": 80,
+  "stratum_counts": {
+    "gas_flare": 28,
+    "industrial_fire": 5,
+    "mining_activity": 18,
+    "unclassified_facility_matched": 29
+  },
+  "all_industrial_fire_candidates_included": 5,
+  "insufficient_history_rows": 21,
+  "review_label_non_null": 0,
+  "initial_label_status": "pending_human_review",
+  "review_label_vocabulary": [
+    "gas_flare",
+    "industrial_fire",
+    "mining_activity",
+    "natural_or_nonindustrial",
+    "other_industrial",
+    "uncertain"
+  ]
+}

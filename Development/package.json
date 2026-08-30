@@ -1,0 +1,27 @@
+{
+  "name": "agnidrishti",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgniDrishti — AI-Powered Thermal Intelligence. Detection and classification of industrial fires and persistent thermal sources.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build:shared": "npm run build -w packages/shared-types",
+    "build:api": "npm run build -w apps/api",
+    "build:web": "npm run build -w apps/web",
+    "build": "npm run build:shared && npm run build:api && npm run build:web",
+    "lint:api": "npm run lint -w apps/api",
+    "lint:web": "npm run lint -w apps/web",
+    "lint:shared": "npm run lint -w packages/shared-types",
+    "lint": "npm run lint:shared && npm run lint:api && npm run lint:web",
+    "db:migrate": "npm run db:migrate -w apps/api",
+    "db:seed": "npm run db:seed -w apps/api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

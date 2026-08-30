@@ -1,0 +1,163 @@
+{
+  "phase": "A3_ml_model_refinement",
+  "model_type": "RandomForestClassifier",
+  "model_version": "track_a_ml_v1.0",
+  "label_source": "A2 rule-based baseline/self-generated labels; no independently verified ground truth is present in the repository",
+  "training_data_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\processed\\firms_sample_a2_rule_based.csv",
+  "target_column": "primary_class",
+  "natural_subclass_target_column": "sub_class",
+  "feature_columns": [
+    "a1_brightness_normalized",
+    "a1_frp_normalized",
+    "a2_neighborhood_detection_count",
+    "a1_month",
+    "a1_land_cover_type",
+    "a1_daynight",
+    "a1_season",
+    "a1_instrument_group"
+  ],
+  "excluded_leakage_columns": [
+    "latitude",
+    "longitude",
+    "primary_class",
+    "sub_class",
+    "confidence_score",
+    "a2_rule_id",
+    "a2_density_level",
+    "model_version"
+  ],
+  "config": {
+    "test_size": 0.25,
+    "random_state": 42,
+    "n_estimators": 300,
+    "min_samples_leaf": 1,
+    "model_version": "track_a_ml_v1.0"
+  },
+  "total_rows": 1020,
+  "primary_class_distribution": {
+    "industrial": 18,
+    "natural": 1002
+  },
+  "train_rows": 765,
+  "test_rows": 255,
+  "train_primary_class_distribution": {
+    "industrial": 13,
+    "natural": 752
+  },
+  "test_primary_class_distribution": {
+    "industrial": 5,
+    "natural": 250
+  },
+  "primary_held_out": {
+    "accuracy": 1.0,
+    "classification_report": {
+      "industrial": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 5.0
+      },
+      "natural": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 250.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 255.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 255.0
+      }
+    },
+    "confusion_matrix_labels": [
+      "industrial",
+      "natural"
+    ],
+    "confusion_matrix": [
+      [
+        5,
+        0
+      ],
+      [
+        0,
+        250
+      ]
+    ]
+  },
+  "natural_subclass_held_out": {
+    "test_rows": 250,
+    "class_distribution": {
+      "agricultural_burning": 61,
+      "forest_fire": 43,
+      "other_natural": 146
+    },
+    "accuracy": 1.0,
+    "classification_report": {
+      "agricultural_burning": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 61.0
+      },
+      "forest_fire": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 43.0
+      },
+      "other_natural": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 146.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 250.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 250.0
+      }
+    },
+    "confusion_matrix_labels": [
+      "agricultural_burning",
+      "forest_fire",
+      "other_natural"
+    ],
+    "confusion_matrix": [
+      [
+        61,
+        0,
+        0
+      ],
+      [
+        0,
+        43,
+        0
+      ],
+      [
+        0,
+        0,
+        146
+      ]
+    ]
+  },
+  "model_artifact_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\models\\track_a_ml_v1_0.joblib",
+  "primary_confusion_matrix_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\evaluation\\track_a_ml_v1_0_primary_confusion_matrix.csv",
+  "natural_subclass_confusion_matrix_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\evaluation\\track_a_ml_v1_0_natural_subclass_confusion_matrix.csv",
+  "trained_at_utc": "2026-08-30T01:21:25.580680+00:00"
+}

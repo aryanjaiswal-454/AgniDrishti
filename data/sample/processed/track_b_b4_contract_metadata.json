@@ -1,0 +1,42 @@
+{
+  "status": "contract_output_built",
+  "input_path": "data\\sample\\processed\\track_b_b3_classified_anomalies.csv",
+  "input_b3_sha256": "2d52b5f0173d180b49e713253b9b46aa3fdae2f7dbf53730a7bf9aa705dd9377",
+  "contract_schema_path": "shared\\shared_output_contract.schema.json",
+  "contract_schema_sha256": "4c301415322fe0a3b396d134f5b3d44c7b57cb1fab5d2fce91b678f323637396",
+  "contract_output_path": "data\\sample\\processed\\track_b_b4_contract_ready.jsonl",
+  "traceability_output_path": "data\\sample\\processed\\track_b_b4_traceability.jsonl",
+  "record_count": 1046,
+  "model_version": "track_b_b3_rules_v1_rule_based",
+  "classification_method": "rule_based",
+  "evaluation_status": "no_independently_verified_metrics_available",
+  "human_review_status": "AI-assisted uncertain labels are excluded from evaluation metrics and threshold tuning.",
+  "history_guardrail": "Rows with insufficient_history=true are not high-confidence anomaly decisions; B3 never marks them industrial_fire/anomalous.",
+  "known_open_follow_up": "The March-2025 TTPS fire is a distinct lead and is not linked to a B3 event.",
+  "contract_mapping": {
+    "track_b_owned": [
+      "facility_id",
+      "distance_to_facility_m",
+      "recurrence_count_90d",
+      "z_score_frp",
+      "is_anomalous",
+      "confidence_score",
+      "sub_class"
+    ],
+    "track_a_owned_set_to_null": [
+      "primary_class",
+      "land_cover_type"
+    ],
+    "source_and_extended_context_sidecar": [
+      "acquisition timestamp",
+      "instrument",
+      "satellite",
+      "FRP",
+      "facility tags",
+      "rolling FRP baseline",
+      "history coverage"
+    ]
+  },
+  "b3_rule_version": "track_b_b3_rules_v1",
+  "b3_insufficient_history_rows": 448
+}

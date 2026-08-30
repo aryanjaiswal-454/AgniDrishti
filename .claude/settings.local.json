@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"Track A person/docs\"/*.md docs/)",
+      "Bash(cp \"Track A person/docs\"/*.pdf docs/)",
+      "Bash(python -m json.tool)",
+      "Bash(python *)"
+    ]
+  }
+}

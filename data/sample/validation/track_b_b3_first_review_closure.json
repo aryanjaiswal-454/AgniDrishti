@@ -1,0 +1,10 @@
+{
+  "status": "first_review_pass_closed_pending_human_confirmation",
+  "queue_path": "data\\sample\\processed\\track_b_b3_evaluation_queue.csv",
+  "reviewed_rows": 5,
+  "review_label": "uncertain",
+  "non_target_review_labels": 0,
+  "reviewer": "AI-assisted blind review (Claude), pending human confirmation",
+  "review_date": "2026-08-29",
+  "human_confirmation_required": true
+}

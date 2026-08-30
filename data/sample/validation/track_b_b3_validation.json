@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "input_path": "data\\sample\\processed\\track_b_b2_recurrence_baselines.csv",
+  "output_path": "data\\sample\\processed\\track_b_b3_classified_anomalies.csv",
+  "input_hotspots": 1046,
+  "output_hotspots": 1046,
+  "unique_hotspot_ids": 1046,
+  "matched_hotspots": 764,
+  "unmatched_hotspots": 282,
+  "subclass_counts": {
+    "gas_flare": 96,
+    "industrial_fire": 5,
+    "mining_activity": 33
+  },
+  "unclassified_hotspots": 912,
+  "anomalous_hotspots": 5,
+  "valid_z_scores": 287,
+  "insufficient_history_rows": 448,
+  "rows_suppressed_or_capped_for_insufficient_history": 166,
+  "rule_version": "track_b_b3_rules_v1",
+  "thresholds": {
+    "match_radius_m": 5000.0,
+    "persistent_recurrence_min": 8,
+    "low_recurrence_max": 3,
+    "low_deviation_abs_z_max": 1.0,
+    "anomaly_z_min": 3.0,
+    "min_baseline_observations": 2,
+    "insufficient_history_confidence_cap": 0.55
+  },
+  "rules": {
+    "mining_activity": "matched facility_type=mining; never anomalous; confidence is capped when history is insufficient",
+    "gas_flare": "non-mining, sufficient history, recurrence >= 8, and |z_score_frp| <= 1",
+    "industrial_fire": "non-mining, sufficient history, recurrence <= 3, and z_score_frp >= 3; is_anomalous=true",
+    "history_guardrail": "insufficient-history rows cannot be industrial_fire or anomalous; only direct mining tags may receive a capped-confidence subclass"
+  },
+  "confidence_policy": "Rule-evidence score, not a calibrated probability. Mining: 0.65 + 0.25*proximity; gas flare/fire: 0.55 + 0.15*recurrence evidence + 0.15*FRP evidence + 0.15*proximity; inconclusive matched rows: 0.20*proximity; unmatched: null.",
+  "schema_fields_added": [
+    "sub_class",
+    "z_score_frp",
+    "is_anomalous",
+    "confidence_score"
+  ],
+  "validation": "B2 columns and hotspot order preserved; z-score eligibility, confidence range, subclass vocabulary, and insufficient-history anomaly guardrail passed."
+}

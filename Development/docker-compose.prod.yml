@@ -1,0 +1,119 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: agnidrishti-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agnidrishti}
+      POSTGRES_USER: ${POSTGRES_USER:-agnidrishti}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agnidrishti} -d ${POSTGRES_DB:-agnidrishti}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: agnidrishti-redis-prod
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data_prod:/data
+    command: redis-server --appendonly yes
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  classifier:
+    build:
+      context: ..
+      dockerfile: Development/apps/classifier/Dockerfile
+    container_name: agnidrishti-classifier-prod
+    environment:
+      - TRACK_B_CONTRACT_PATH=/app/data/sample/processed/track_b_b4_contract_ready.jsonl
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+      - ../track_a:/app/track_a
+    restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agnidrishti-api-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-agnidrishti}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agnidrishti}
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - FIRMS_MAP_KEY=${FIRMS_MAP_KEY}
+      - CLASSIFIER_URL=http://classifier:8000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      classifier:
+        condition: service_started
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agnidrishti-worker-prod
+    command: ["node", "apps/api/dist/workers/index.js"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-agnidrishti}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agnidrishti}
+      - REDIS_URL=redis://redis:6379
+      - FIRMS_MAP_KEY=${FIRMS_MAP_KEY}
+      - FIRMS_SOURCE=${FIRMS_SOURCE}
+      - FIRMS_AREA_COORDINATES=${FIRMS_AREA_COORDINATES}
+      - FIRMS_DAY_RANGE=${FIRMS_DAY_RANGE}
+      - CLASSIFIER_URL=http://classifier:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    restart: always
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3001}
+    container_name: agnidrishti-web-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local

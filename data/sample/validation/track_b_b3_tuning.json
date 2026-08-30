@@ -1,0 +1,62 @@
+{
+  "status": "deferred_pending_independent_labels",
+  "queue_path": "data\\sample\\processed\\track_b_b3_evaluation_queue.csv",
+  "reviewed_target_rows": 0,
+  "class_support": {
+    "industrial_fire": 0,
+    "gas_flare": 0,
+    "mining_activity": 0
+  },
+  "unique_facility_groups": 0,
+  "requirements": {
+    "minimum_reviewed_rows": 75,
+    "minimum_support_per_target_class": 20,
+    "minimum_unique_facility_groups": 5
+  },
+  "candidate_threshold_ranges": {
+    "persistent_recurrence_min": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "low_recurrence_max": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "gas_flare_abs_z_max": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5
+    ],
+    "industrial_fire_z_min": [
+      2.0,
+      2.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      5.0
+    ],
+    "facility_distance_m": [
+      1000,
+      2000,
+      3000,
+      4000,
+      5000
+    ]
+  },
+  "selection_policy": "When prerequisites are met, use facility-grouped evaluation, retain the insufficient-history guardrail in every candidate, and select by macro F1 with industrial-fire precision/recall reported separately. Do not use accuracy as the selection metric.",
+  "model_training_decision": "Rule-based B3 remains the validated baseline; more reviewed labels are required before supervised model training."
+}

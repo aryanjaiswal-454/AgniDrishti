@@ -1,0 +1,26 @@
+{
+  "requested_window": "2024-01-01 to 2025-12-31",
+  "source_status": {
+    "VIIRS_SNPP_SP": {
+      "status": "available",
+      "canonical_instrument": "VIIRS",
+      "records_in_combined_sample": 479,
+      "provenance": "existing validated local baseline retained without replacement"
+    },
+    "VIIRS_NOAA20_SP": {
+      "status": "available and merged",
+      "canonical_instrument": "VIIRS",
+      "pull_date": "2026-08-28",
+      "records_in_combined_sample": 480,
+      "provenance": "authenticated FIRMS archive downloader using MAP_KEY from the project-root .env"
+    },
+    "MODIS_SP": {
+      "status": "available and merged",
+      "canonical_instrument": "MODIS",
+      "pull_date": "2026-08-28",
+      "records_in_combined_sample": 61,
+      "provenance": "authenticated FIRMS archive downloader using MAP_KEY from the project-root .env"
+    }
+  },
+  "note": "The merged sample preserves source_dataset plus the native MODIS brightness/bright_t31 and VIIRS bright_ti4/bright_ti5 fields; instrument is constrained to MODIS or VIIRS while satellite retains the platform identifier."
+}

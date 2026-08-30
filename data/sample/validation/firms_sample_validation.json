@@ -1,0 +1,78 @@
+{
+  "status": "passed",
+  "pilot_bbox_wgs84": [
+    77.85,
+    8.35,
+    78.45,
+    8.95
+  ],
+  "time_window": [
+    "2023-10-01",
+    "2025-12-31"
+  ],
+  "required_fields_present": [
+    "acq_date",
+    "acq_time",
+    "confidence",
+    "daynight",
+    "frp",
+    "instrument",
+    "latitude",
+    "longitude",
+    "satellite"
+  ],
+  "total_records": 1046,
+  "duplicate_contract_keys": 0,
+  "original_q4_2025_records_preserved": 17,
+  "original_snpp_baseline_records_preserved": 479,
+  "records_by_instrument": {
+    "MODIS": 61,
+    "VIIRS": 985
+  },
+  "records_by_satellite": {
+    "Aqua": 27,
+    "NOAA-20": 494,
+    "SNPP": 491,
+    "Terra": 34
+  },
+  "records_by_source_dataset": {
+    "MODIS_SP": 61,
+    "VIIRS_NOAA20_SP": 494,
+    "VIIRS_SNPP_SP": 491
+  },
+  "satellites_by_source_dataset": {
+    "MODIS_SP": [
+      "Aqua",
+      "Terra"
+    ],
+    "VIIRS_NOAA20_SP": [
+      "NOAA-20"
+    ],
+    "VIIRS_SNPP_SP": [
+      "SNPP"
+    ]
+  },
+  "records_by_year": {
+    "2023": 26,
+    "2024": 482,
+    "2025": 538
+  },
+  "records_by_quarter": {
+    "2023-Q4": 26,
+    "2024-Q1": 62,
+    "2024-Q2": 152,
+    "2024-Q3": 244,
+    "2024-Q4": 24,
+    "2025-Q1": 52,
+    "2025-Q2": 183,
+    "2025-Q3": 257,
+    "2025-Q4": 46
+  },
+  "facility_proxy": {
+    "threshold_m": 1000,
+    "qualifying_osm_facility_points": 72,
+    "qualifying_tags": "industrial=*, landuse=industrial, man_made=works|petroleum_well, or power=plant; transmission lines/towers and standalone generators are excluded",
+    "within_1km": 125,
+    "outside_1km": 921
+  }
+}

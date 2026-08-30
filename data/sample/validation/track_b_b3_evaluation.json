@@ -1,0 +1,31 @@
+{
+  "status": "ready_for_human_labels",
+  "queue_path": "data\\sample\\processed\\track_b_b3_evaluation_queue.csv",
+  "queue_rows": 80,
+  "rows_with_any_review_label": 80,
+  "completed_review_rows_raw": 0,
+  "completed_review_rows": 0,
+  "completed_review_event_samples": 0,
+  "event_clustering_policy": "Before eligibility and metrics, labelled rows with identical acq_date, acq_time, instrument, satellite, and FRP within tolerance are clustered when their centres are within the configured geodesic radius. Same-label/same-prediction clusters count as one evaluation event; label or prediction conflicts are excluded and reported.",
+  "event_cluster_radius_m": 1000.0,
+  "frp_tolerance": 1e-06,
+  "clusters_detected": 2,
+  "rows_deduplicated_for_evaluation": 4,
+  "cluster_label_conflicts": [],
+  "cluster_prediction_conflicts": [],
+  "labelled_event_samples_after_clustering": 76,
+  "evaluation_policy": "Only label_status=reviewed rows with a non-null, non-uncertain review_label are evaluated after view-only event clustering. Accuracy is intentionally omitted as a primary metric.",
+  "overall": {
+    "reviewed_rows": 0,
+    "metrics_available": false
+  },
+  "sufficient_history": {
+    "reviewed_rows": 0,
+    "metrics_available": false
+  },
+  "insufficient_history": {
+    "reviewed_rows": 0,
+    "metrics_available": false
+  },
+  "model_training_decision": "Rule-based B3 remains the validated baseline; more reviewed labels are required before supervised model training."
+}

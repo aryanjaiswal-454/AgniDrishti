@@ -1,0 +1,6 @@
+hotspot_id,latitude,longitude,acq_date,acq_time,instrument,satellite,frp,facility_id,facility_name,facility_type,distance_to_facility_m,recurrence_count_90d,history_coverage_days,insufficient_history,evidence_reference,review_notes
+firms_26795529990e487f,8.85157,78.0039,2025-07-28,739,VIIRS,SNPP,8.23,osm_way_1011035031,Orange Sironj,generic_industrial,3004.822,3.0,90.0,False,,
+firms_70b31109e57d4d2c,8.94451,78.13512,2025-06-05,755,VIIRS,NOAA-20,8.55,osm_way_733764035,Mutiara Thermal Power Plant,thermal_power_plant,3655.523,3.0,90.0,False,,
+firms_aaa475fee26d4c1c,8.85762,78.00415,2024-07-19,750,VIIRS,SNPP,44.71,osm_way_1011035031,Orange Sironj,generic_industrial,2950.515,2.0,90.0,False,,
+firms_c6e6132bd0d7afdb,8.85297,77.99994,2024-07-19,750,VIIRS,SNPP,44.71,osm_way_1011035031,Orange Sironj,generic_industrial,3419.001,2.0,90.0,False,,
+firms_fefe6139f7128536,8.85682,77.99931,2024-07-19,750,VIIRS,SNPP,44.71,osm_way_1011035031,Orange Sironj,generic_industrial,3477.401,2.0,90.0,False,,

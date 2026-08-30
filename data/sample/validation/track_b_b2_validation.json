@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "input_path": "data\\sample\\processed\\track_b_b1_facility_matches.csv",
+  "output_path": "data\\sample\\processed\\track_b_b2_recurrence_baselines.csv",
+  "input_hotspots": 1046,
+  "output_hotspots": 1046,
+  "unique_hotspot_ids": 1046,
+  "matched_hotspots": 764,
+  "unmatched_hotspots": 282,
+  "invalid_or_missing_timestamps": 0,
+  "invalid_or_missing_frp": 0,
+  "timestamp_policy": "acq_date + zero-padded acq_time are interpreted as UTC and rendered as ISO 8601 UTC timestamps.",
+  "recurrence_policy": "For matched, timestamp-valid rows, recurrence_count_90d counts same-facility detections in [timestamp - 90 days, timestamp); same-timestamp events are excluded.",
+  "unmatched_policy": "Rows without facility_id are retained with null recurrence and baseline metrics.",
+  "baseline_grouping": "facility_id + instrument + satellite; this prevents MODIS, VIIRS SNPP, and VIIRS NOAA-20 FRP values from being pooled.",
+  "baseline_policy": "Prior numeric FRP values in the same 90-day leakage-safe window; mean needs >=1 value and sample std needs >=2 values.",
+  "history_coverage_policy": "For matched timestamp-valid rows, history_coverage_days is min(90, floor(days since the earliest same-facility detection in the dataset)); unmatched or timestamp-invalid rows have null coverage and insufficient_history=true.",
+  "valid_timestamp_matched_hotspots": 764,
+  "rows_with_prior_facility_detection_90d": 606,
+  "recurrence_count_90d_summary": {
+    "count": 764,
+    "min": 0,
+    "max": 26,
+    "mean": 5.020942,
+    "median": 3.0
+  },
+  "rows_with_prior_frp_observation": 455,
+  "rows_with_sufficient_prior_frp_for_std": 313,
+  "rows_with_full_history_coverage": 598,
+  "rows_with_insufficient_history": 448,
+  "early_2024_matched_history_coverage": {
+    "rows": 52,
+    "full_90_day_coverage": 27,
+    "insufficient_history": 25
+  },
+  "baseline_strata_with_observations": 126,
+  "schema_fields_added": [
+    "acquisition_timestamp_utc",
+    "recurrence_count_90d",
+    "facility_frp_observation_count_90d",
+    "facility_frp_mean_90d",
+    "facility_frp_std_90d",
+    "history_coverage_days",
+    "insufficient_history"
+  ],
+  "leakage_check": "passed: all recurrence and baseline windows exclude the current timestamp and later events."
+}

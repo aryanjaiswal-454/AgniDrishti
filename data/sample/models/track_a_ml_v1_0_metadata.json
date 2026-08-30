@@ -1,0 +1,21 @@
+{
+  "model_type": "RandomForestClassifier",
+  "model_version": "track_a_ml_v1.0",
+  "training_data_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\processed\\firms_sample_a2_rule_based.csv",
+  "feature_columns": [
+    "a1_brightness_normalized",
+    "a1_frp_normalized",
+    "a2_neighborhood_detection_count",
+    "a1_month",
+    "a1_land_cover_type",
+    "a1_daynight",
+    "a1_season",
+    "a1_instrument_group"
+  ],
+  "target_column": "primary_class",
+  "natural_subclass_target_column": "sub_class",
+  "train_rows": 765,
+  "test_rows": 255,
+  "random_state": 42,
+  "trained_at_utc": "2026-08-30T01:21:25.580680+00:00"
+}

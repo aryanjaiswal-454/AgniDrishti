@@ -1,0 +1,24 @@
+{
+  "status": "completed_external_review_pending",
+  "queue_path": "data\\sample\\processed\\track_b_b3_evaluation_queue.csv",
+  "external_export_path": "data\\sample\\processed\\track_b_b3_industrial_fire_external_review.csv",
+  "industrial_fire_rows": 5,
+  "search_variants_per_row": 5,
+  "search_variants": [
+    "facility name/type + acquisition date + district",
+    "facility name/type + district without date",
+    "Thoothukudi industrial fire + surrounding month",
+    "Thoothukudi factory explosion + surrounding month / wider reporting window",
+    "Tamil-language Thoothukudi factory-fire query"
+  ],
+  "direct_evidence_found": 0,
+  "review_labels_assigned": 0,
+  "scope_policy": "Only the five industrial-fire rows were changed. The remaining 75 queue rows retain their prior evidence statuses.",
+  "language_limitation": "Tamil-language query terms were used, but general web search cannot establish complete coverage of Tamil outlets or state-agency records that are not indexed.",
+  "blind_export_excludes": [
+    "confidence_score",
+    "is_anomalous",
+    "sub_class",
+    "z_score_frp"
+  ]
+}

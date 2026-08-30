@@ -1,0 +1,69 @@
+{
+  "input_rows": 1020,
+  "valid_coordinates": 1020,
+  "invalid_coordinates": 0,
+  "valid_dates": 1020,
+  "invalid_dates": 0,
+  "missing_optional_firms_columns": [],
+  "worldcover": {
+    "raster_path": "C:\\Users\\Lenovo\\Downloads\\AgniDrishti\\data\\sample\\input\\worldcover_thoothukudi_2025q4.tif",
+    "raster_available": true,
+    "raster_crs": "EPSG:4326",
+    "raster_bounds": [
+      77.85,
+      8.35,
+      78.44999999999999,
+      8.95
+    ],
+    "raster_nodata": 0.0,
+    "sampled": 1010,
+    "unmapped_code": 10,
+    "outside_extent": 0,
+    "nodata": 0
+  },
+  "phase": "A1_land_cover_feature_engineering",
+  "output_rows": 1020,
+  "all_input_rows_preserved": true,
+  "land_cover_counts": {
+    "bare": 25,
+    "built_up": 29,
+    "cropland": 286,
+    "forest": 160,
+    "grassland": 510,
+    "unknown": 10
+  },
+  "worldcover_status_counts": {
+    "sampled": 1010,
+    "unmapped_code": 10
+  },
+  "worldcover_code_counts": {
+    "10": 158,
+    "20": 281,
+    "30": 221,
+    "40": 286,
+    "50": 29,
+    "60": 25,
+    "80": 10,
+    "90": 8,
+    "95": 2
+  },
+  "brightness_valid": 1020,
+  "frp_valid": 1020,
+  "brightness_normalized_valid": 1020,
+  "frp_normalized_valid": 1020,
+  "instrument_counts": {
+    "MODIS": 61,
+    "VIIRS": 959
+  },
+  "daynight_counts": {
+    "day": 942,
+    "night": 78
+  },
+  "season_counts": {
+    "northeast_monsoon": 70,
+    "southwest_monsoon": 715,
+    "summer": 175,
+    "winter": 60
+  },
+  "forbidden_classifier_or_track_b_columns_present": []
+}

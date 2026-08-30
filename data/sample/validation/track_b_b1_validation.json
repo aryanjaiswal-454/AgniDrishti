@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "input_hotspots": 1046,
+  "output_hotspots": 1046,
+  "facility_count": 72,
+  "facility_types": {
+    "chemical_industry": 1,
+    "generic_industrial": 33,
+    "industrial_port": 3,
+    "industrial_works": 6,
+    "mining": 5,
+    "power_plant": 16,
+    "thermal_power_plant": 8
+  },
+  "matching_crs": "+proj=aeqd +lat_0=8.65 +lon_0=78.15 +datum=WGS84 +units=m +no_defs +type=crs",
+  "matching_radius_m": 5000.0,
+  "matched_hotspots": 764,
+  "unmatched_hotspots": 282,
+  "distance_policy": "distance_to_facility_m is null when no facility is within the configured radius",
+  "facility_id_traceability": "facility_id is osm_{element_type}_{element_id}; OSM IDs and tags are retained in data/sample/processed/track_b_b1_facilities.geojson"
+}

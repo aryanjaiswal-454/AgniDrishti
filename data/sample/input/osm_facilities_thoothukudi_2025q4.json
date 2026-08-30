@@ -1,0 +1,941 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-28T10:36:04Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 385432377,
+  "center": {
+    "lat": 8.8165830,
+    "lon": 78.0896501
+  },
+  "tags": {
+    "landuse": "industrial",
+    "plant:method": "combustion",
+    "plant:output:electricity": "yes",
+    "plant:source": "coal",
+    "power": "plant",
+    "power:source": "coal"
+  }
+},
+{
+  "type": "way",
+  "id": 385432381,
+  "center": {
+    "lat": 8.8660609,
+    "lon": 78.1086516
+  },
+  "tags": {
+    "name": "Thoothukudi IBPGL",
+    "plant:method": "combustion",
+    "plant:source": "coal",
+    "power": "plant",
+    "power:source": "coal",
+    "source": "https://www.gem.wiki/Thoothukudi_IBPGL_power_station"
+  }
+},
+{
+  "type": "way",
+  "id": 385432388,
+  "center": {
+    "lat": 8.8851369,
+    "lon": 78.0544525
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "Thoothukudi IBTPL power station",
+    "plant:method": "combustion",
+    "plant:output:electricity": "300 MW",
+    "plant:source": "coal",
+    "power": "plant",
+    "source": "https://www.gem.wiki/Thoothukudi_IBTPL_power_station",
+    "start_date": "2013"
+  }
+},
+{
+  "type": "way",
+  "id": 398674681,
+  "center": {
+    "lat": 8.6979507,
+    "lon": 78.1290355
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 548907979,
+  "center": {
+    "lat": 8.5929240,
+    "lon": 78.0954592
+  },
+  "tags": {
+    "chemical": "chloralkali",
+    "industrial": "chemical",
+    "landuse": "industrial",
+    "name": "DCW"
+  }
+},
+{
+  "type": "way",
+  "id": 577750403,
+  "center": {
+    "lat": 8.7496553,
+    "lon": 78.2119323
+  },
+  "tags": {
+    "industrial": "port",
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 657801517,
+  "center": {
+    "lat": 8.8882303,
+    "lon": 78.0719590
+  },
+  "tags": {
+    "landuse": "quarry"
+  }
+},
+{
+  "type": "way",
+  "id": 657801518,
+  "center": {
+    "lat": 8.8221123,
+    "lon": 78.0787396
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 661590301,
+  "center": {
+    "lat": 8.8076921,
+    "lon": 78.0980837
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 661590303,
+  "center": {
+    "lat": 8.8180412,
+    "lon": 78.0742470
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 661590305,
+  "center": {
+    "lat": 8.8154039,
+    "lon": 78.0756712
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 662798206,
+  "center": {
+    "lat": 8.7616304,
+    "lon": 78.1688645
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "NTPL Thermal Power Station",
+    "plant:method": "combustion",
+    "plant:output:electricity": "1000 MW",
+    "plant:source": "coal",
+    "power": "plant",
+    "wikidata": "Q48732417",
+    "wikipedia": "en:NTPL Thermal Power Station"
+  }
+},
+{
+  "type": "way",
+  "id": 662798207,
+  "center": {
+    "lat": 8.7627686,
+    "lon": 78.1759041
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "Tuticorin Thermal Power Station",
+    "plant:method": "combustion",
+    "plant:output:electricity": "1050 MW",
+    "plant:source": "coal",
+    "power": "plant",
+    "wikidata": "Q12006136",
+    "wikipedia": "en:Tuticorin Thermal Power Station"
+  }
+},
+{
+  "type": "way",
+  "id": 733764035,
+  "center": {
+    "lat": 8.9129778,
+    "lon": 78.1450814
+  },
+  "tags": {
+    "barrier": "wall",
+    "landuse": "industrial",
+    "name": "Mutiara Thermal Power Plant",
+    "operator": "Coal and Oil Group",
+    "plant:method": "combustion",
+    "plant:output:electricity": "1200 MW",
+    "plant:source": "coal",
+    "power": "plant",
+    "start_date": "2014",
+    "wikidata": "Q48728551"
+  }
+},
+{
+  "type": "way",
+  "id": 822892679,
+  "center": {
+    "lat": 8.7559982,
+    "lon": 78.1574518
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "SEPC",
+    "operator": "SEPC",
+    "plant:method": "combustion",
+    "plant:output:electricity": "525 MW",
+    "plant:source": "coal",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 823674453,
+  "center": {
+    "lat": 8.8044306,
+    "lon": 78.1583167
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 823674454,
+  "center": {
+    "lat": 8.8059944,
+    "lon": 78.1596579
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 823674462,
+  "center": {
+    "lat": 8.7397105,
+    "lon": 78.0303902
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906390049,
+  "center": {
+    "lat": 8.8940005,
+    "lon": 78.1341690
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906827207,
+  "center": {
+    "lat": 8.7673706,
+    "lon": 78.1970063
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906827213,
+  "center": {
+    "lat": 8.7579136,
+    "lon": 78.1933889
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906827214,
+  "center": {
+    "lat": 8.7566249,
+    "lon": 78.1893414
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906827216,
+  "center": {
+    "lat": 8.7365751,
+    "lon": 78.1360933
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906827217,
+  "center": {
+    "lat": 8.8742289,
+    "lon": 78.1379728
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906827218,
+  "center": {
+    "lat": 8.8389584,
+    "lon": 78.1035528
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906827219,
+  "center": {
+    "lat": 8.8516335,
+    "lon": 78.1217257
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906827220,
+  "center": {
+    "lat": 8.8560793,
+    "lon": 78.0573960
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906827221,
+  "center": {
+    "lat": 8.8534634,
+    "lon": 78.0572109
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831348,
+  "center": {
+    "lat": 8.6595243,
+    "lon": 78.0904770
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831349,
+  "center": {
+    "lat": 8.6627713,
+    "lon": 78.0912934
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831350,
+  "center": {
+    "lat": 8.7035920,
+    "lon": 78.0935562
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831351,
+  "center": {
+    "lat": 8.7226491,
+    "lon": 78.1050883
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831352,
+  "center": {
+    "lat": 8.7292135,
+    "lon": 78.1022686
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906831356,
+  "center": {
+    "lat": 8.7380365,
+    "lon": 78.1439785
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906831358,
+  "center": {
+    "lat": 8.7389114,
+    "lon": 78.1496412
+  },
+  "tags": {
+    "man_made": "works"
+  }
+},
+{
+  "type": "way",
+  "id": 906837208,
+  "center": {
+    "lat": 8.8943705,
+    "lon": 78.1092847
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 906837209,
+  "center": {
+    "lat": 8.8825356,
+    "lon": 78.1087643
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 958448568,
+  "center": {
+    "lat": 8.3729578,
+    "lon": 78.0658087
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 986279192,
+  "center": {
+    "lat": 8.8804632,
+    "lon": 77.8524229
+  },
+  "tags": {
+    "barrier": "wall",
+    "description": "402250",
+    "landuse": "industrial",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 986411990,
+  "center": {
+    "lat": 8.8880410,
+    "lon": 78.0649155
+  },
+  "tags": {
+    "barrier": "wall",
+    "description": "33880",
+    "landuse": "industrial",
+    "name": "Arasadi",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant",
+    "source": "https://global-power-plants.datasettes.com/global-power-plants/global-power-plants?country_long=India"
+  }
+},
+{
+  "type": "way",
+  "id": 986423924,
+  "center": {
+    "lat": 8.7674011,
+    "lon": 77.9564926
+  },
+  "tags": {
+    "barrier": "fence",
+    "description": "56010",
+    "landuse": "industrial",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1003158311,
+  "center": {
+    "lat": 8.8457622,
+    "lon": 78.0836747
+  },
+  "tags": {
+    "description": "11640",
+    "landuse": "industrial",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1011035031,
+  "center": {
+    "lat": 8.8556804,
+    "lon": 78.0309016
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "Orange Sironj",
+    "power": "substation",
+    "substation": "transmission",
+    "voltage": "220000"
+  }
+},
+{
+  "type": "way",
+  "id": 1032774973,
+  "center": {
+    "lat": 8.6670906,
+    "lon": 77.9204431
+  },
+  "tags": {
+    "landuse": "quarry"
+  }
+},
+{
+  "type": "way",
+  "id": 1073989739,
+  "center": {
+    "lat": 8.7990416,
+    "lon": 78.0959863
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1073989741,
+  "center": {
+    "lat": 8.8031025,
+    "lon": 78.0825483
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1222785220,
+  "center": {
+    "lat": 8.7776347,
+    "lon": 78.1242326
+  },
+  "tags": {
+    "depot": "container",
+    "industrial": "depot",
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1235088522,
+  "center": {
+    "lat": 8.7720903,
+    "lon": 78.1109209
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1268305324,
+  "center": {
+    "lat": 8.6610850,
+    "lon": 77.9439765
+  },
+  "tags": {
+    "description": "137760",
+    "landuse": "industrial",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1384361544,
+  "center": {
+    "lat": 8.7491341,
+    "lon": 78.1773266
+  },
+  "tags": {
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1431653737,
+  "center": {
+    "lat": 8.8522157,
+    "lon": 78.0808673
+  },
+  "tags": {
+    "landuse": "industrial",
+    "name": "Vinfast Auto"
+  }
+},
+{
+  "type": "way",
+  "id": 1432129271,
+  "center": {
+    "lat": 8.8518177,
+    "lon": 78.0360281
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1432129272,
+  "center": {
+    "lat": 8.8373018,
+    "lon": 78.0331635
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1432135179,
+  "center": {
+    "lat": 8.9136484,
+    "lon": 78.0536824
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1432135180,
+  "center": {
+    "lat": 8.9055558,
+    "lon": 78.0481168
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1442917861,
+  "center": {
+    "lat": 8.7278604,
+    "lon": 78.0272977
+  },
+  "tags": {
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1453652971,
+  "center": {
+    "lat": 8.5813504,
+    "lon": 77.9069722
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1468877017,
+  "center": {
+    "lat": 8.5512639,
+    "lon": 77.9521582
+  },
+  "tags": {
+    "plant:source": "solar",
+    "power": "plant"
+  }
+},
+{
+  "type": "way",
+  "id": 1504375937,
+  "center": {
+    "lat": 8.5137214,
+    "lon": 78.1184471
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453091,
+  "center": {
+    "lat": 8.9241521,
+    "lon": 78.0252885
+  },
+  "tags": {
+    "landuse": "quarry"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453096,
+  "center": {
+    "lat": 8.8931753,
+    "lon": 78.0167055
+  },
+  "tags": {
+    "landuse": "quarry"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453097,
+  "center": {
+    "lat": 8.8914185,
+    "lon": 78.0212384
+  },
+  "tags": {
+    "landuse": "quarry"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453098,
+  "center": {
+    "lat": 8.8934669,
+    "lon": 78.0204606
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453099,
+  "center": {
+    "lat": 8.8979208,
+    "lon": 78.0210547
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "way",
+  "id": 1516453102,
+  "center": {
+    "lat": 8.8475402,
+    "lon": 78.0710953
+  },
+  "tags": {
+    "landuse": "industrial"
+  }
+},
+{
+  "type": "relation",
+  "id": 9212425,
+  "center": {
+    "lat": 8.7625100,
+    "lon": 78.1846273
+  },
+  "tags": {
+    "landuse": "industrial",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 11278577,
+  "center": {
+    "lat": 8.8004400,
+    "lon": 78.1607945
+  },
+  "tags": {
+    "industrial": "port",
+    "landuse": "industrial",
+    "name:ta": "துறைமுகம்",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 11278578,
+  "center": {
+    "lat": 8.7946391,
+    "lon": 78.1602869
+  },
+  "tags": {
+    "industrial": "port",
+    "landuse": "industrial",
+    "name": "Thoothukudi Fishing Harbour",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 15986380,
+  "center": {
+    "lat": 8.4345843,
+    "lon": 78.0644918
+  },
+  "tags": {
+    "landuse": "industrial",
+    "operator": "Tamil Nadu Power Generation Corporation Limited",
+    "plant:method": "combustion",
+    "plant:output:electricity": "1320 MW",
+    "plant:source": "coal",
+    "power": "plant",
+    "type": "multipolygon",
+    "wikidata": "Q119592190"
+  }
+},
+{
+  "type": "relation",
+  "id": 16765870,
+  "center": {
+    "lat": 8.7658490,
+    "lon": 77.9802919
+  },
+  "tags": {
+    "description": "96480",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "power": "plant",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17348197,
+  "center": {
+    "lat": 8.7348819,
+    "lon": 78.1293108
+  },
+  "tags": {
+    "description": "182060",
+    "floating": "yes",
+    "name": "SPIC Thoothukudi Floating Solar PV Park",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "25.3 MW",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17415628,
+  "center": {
+    "lat": 8.6611965,
+    "lon": 77.9439893
+  },
+  "tags": {
+    "description": "182060",
+    "plant:method": "photovoltaic",
+    "plant:output:electricity": "yes",
+    "plant:source": "solar",
+    "plant:type": "solar_photovoltaic_panel",
+    "power": "plant",
+    "type": "multipolygon"
+  }
+}
+
+  ]
+}

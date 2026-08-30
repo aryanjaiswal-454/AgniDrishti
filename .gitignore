@@ -1,0 +1,142 @@
+# ============================================
+# NODE / NPM
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============================================
+# BUILD / GENERATED OUTPUT
+# ============================================
+dist/
+build/
+out/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# ============================================
+# ENVIRONMENT / SECRETS
+# ============================================
+.env
+.env.*
+!.env.example
+
+# ============================================
+# PYTHON
+# ============================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python caches / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ============================================
+# PYTHON EXTENSIONS / LOCAL ARTIFACTS
+# ============================================
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ============================================
+# ML MODEL / GENERATED ARTIFACTS
+# ============================================
+*.pkl
+*.pickle
+*.joblib
+*.onnx
+*.pt
+*.pth
+*.h5
+*.hdf5
+
+# ============================================
+# LARGE SATELLITE / RASTER DATA
+# ============================================
+*.tif
+*.tiff
+*.vrt
+*.img
+*.jp2
+*.hdf
+
+# ============================================
+# LARGE IMAGERY
+# ============================================
+*.png
+*.jpg
+*.jpeg
+
+# ============================================
+# GEOSPATIAL / OSM DATA
+# ============================================
+*.pbf
+*.osm
+
+# ============================================
+# LARGE PROJECT DATA
+# ============================================
+data/raw/
+data/processed/
+data/tiles/
+
+# Track A / Track B local datasets
+Track A person/data/
+Track B person/data/
+
+# ============================================
+# DOCKER LOCAL FILES
+# ============================================
+docker-compose.override.yml
+
+# ============================================
+# IDE / EDITOR
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# LOGS / TEMPORARY
+# ============================================
+*.log
+logs/
+*.tmp
+*.temp
+
+# ============================================
+# LOCAL DATABASES
+# ============================================
+*.sqlite
+*.sqlite3
+*.db
+
+# ============================================
+# JUPYTER
+# ============================================
+.ipynb_checkpoints/
