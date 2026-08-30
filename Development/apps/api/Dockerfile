@@ -17,7 +17,7 @@ RUN npm ci
 # Copy source code
 COPY packages/shared-types/ ./packages/shared-types/
 COPY apps/api/ ./apps/api/
-
+COPY apps/api/ca.pem ./apps/api/ca.pem
 # Build shared types then API
 RUN npm run build -w @agnidrishti/shared-types
 RUN npm run build -w @agnidrishti/api

@@ -1,21 +1,29 @@
 import { Pool, PoolConfig, QueryResult, QueryResultRow } from "pg";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 
 // Ensure environment variables from root .env are loaded
-dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+dotenv.config({
+  path: path.resolve(__dirname, "../../../../.env"),
+});
 
 console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
-console.log("PGSSLROOTCERT exists:", !!process.env.PGSSLROOTCERT);
-console.log(
-  "PGSSLROOTCERT length:",
-  process.env.PGSSLROOTCERT?.length
-);
+
+// Path to Aiven CA certificate
+// ca.pem should be located at:
+// apps/api/ca.pem
+const caPath = path.resolve(process.cwd(), "apps/api/ca.pem");
+
+console.log("Aiven CA certificate exists:", fs.existsSync(caPath));
+console.log("Aiven CA certificate path:", caPath);
+
 const poolConfig: PoolConfig = {
   connectionString: process.env.DATABASE_URL,
+
   ssl: {
     rejectUnauthorized: true,
-    ca: process.env.PGSSLROOTCERT,
+    ca: fs.readFileSync(caPath, "utf8"),
   },
 };
 
@@ -33,11 +41,22 @@ export async function query<T extends QueryResultRow = any>(
   params?: any[]
 ): Promise<QueryResult<T>> {
   const start = Date.now();
+
   const res = await pool.query<T>(text, params);
+
   const duration = Date.now() - start;
-  if (process.env.NODE_ENV === "development" && process.env.DEBUG_SQL === "true") {
-    console.log("executed query", { text, duration, rows: res.rowCount });
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    process.env.DEBUG_SQL === "true"
+  ) {
+    console.log("executed query", {
+      text,
+      duration,
+      rows: res.rowCount,
+    });
   }
+
   return res;
 }
 
@@ -48,10 +67,14 @@ export async function withTransaction<T>(
   callback: (client: import("pg").PoolClient) => Promise<T>
 ): Promise<T> {
   const client = await pool.connect();
+
   try {
     await client.query("BEGIN");
+
     const result = await callback(client);
+
     await client.query("COMMIT");
+
     return result;
   } catch (err) {
     await client.query("ROLLBACK");
@@ -64,11 +87,16 @@ export async function withTransaction<T>(
 /**
  * Health check to verify database connectivity and PostGIS availability.
  */
-export async function testDbConnection(): Promise<{ ok: boolean; postgisVersion?: string; error?: string }> {
+export async function testDbConnection(): Promise<{
+  ok: boolean;
+  postgisVersion?: string;
+  error?: string;
+}> {
   try {
     const result = await pool.query<{ postgis_version: string }>(
       "SELECT PostGIS_Version() as postgis_version;"
     );
+
     return {
       ok: true,
       postgisVersion: result.rows[0]?.postgis_version,
@@ -82,4 +110,3 @@ export async function testDbConnection(): Promise<{ ok: boolean; postgisVersion?
 }
 
 export default pool;
-
