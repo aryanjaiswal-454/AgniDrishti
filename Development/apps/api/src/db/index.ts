@@ -16,7 +16,7 @@ const caPath = path.resolve(process.cwd(), "apps/api/ca.pem");
 console.log("Aiven CA certificate exists:", fs.existsSync(caPath));
 console.log("Aiven CA certificate path:", caPath);
 
-if (!fs.existsSync(caPath)) {
+if (!fs.existsSync(caPath) && process.env.DB_IGNORE_SSL !== "true") {
   throw new Error(`Aiven CA certificate not found at: ${caPath}`);
 }
 
@@ -43,12 +43,15 @@ dbUrl.searchParams.delete("sslkey");
 
 const poolConfig: PoolConfig = {
   connectionString: dbUrl.toString(),
+};
 
-  ssl: {
+// Check if we want to bypass SSL (useful for local Docker testing)
+if (process.env.DB_IGNORE_SSL !== "true") {
+  poolConfig.ssl = {
     rejectUnauthorized: true,
     ca: fs.readFileSync(caPath, "utf8"),
-  },
-};
+  };
+}
 
 export const pool = new Pool(poolConfig);
 

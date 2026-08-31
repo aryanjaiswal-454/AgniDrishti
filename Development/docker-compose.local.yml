@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  api_local:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agnidrishti-api-local
+    env_file:
+      - apps/classifier/.env
+    environment:
+      - DB_IGNORE_SSL=true
+      - DATABASE_URL=postgresql://agnidrishti:agnidrishti_dev@postgres:5432/agnidrishti
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_URL=redis://redis:6379
+      - CLASSIFIER_URL=http://classifier:8000
+      - CORS_ORIGIN=http://localhost:8080
+    ports:
+      - "10001:3001"
+    networks:
+      - development_default
+
+  worker_local:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: agnidrishti-worker-local
+    command: ["node", "apps/api/dist/workers/index.js"]
+    env_file:
+      - apps/classifier/.env
+    environment:
+      - DB_IGNORE_SSL=true
+      - DATABASE_URL=postgresql://agnidrishti:agnidrishti_dev@postgres:5432/agnidrishti
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - REDIS_URL=redis://redis:6379
+      - CLASSIFIER_URL=http://classifier:8000
+      - CORS_ORIGIN=http://localhost:8080
+    networks:
+      - development_default
+    depends_on:
+      - api_local
+
+  web_local:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:10001
+        VITE_WS_URL: ws://localhost:10001
+    container_name: agnidrishti-web-local
+    ports:
+      - "8080:80"
+    networks:
+      - development_default
+    depends_on:
+      - api_local
+
+networks:
+  development_default:
+    external: true
