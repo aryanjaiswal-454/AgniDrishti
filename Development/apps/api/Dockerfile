@@ -61,4 +61,4 @@ COPY --from=builder /app/apps/api/ca.pem ./apps/api/ca.pem
 EXPOSE 3001
 
 # Start API
-CMD ["node", "apps/api/dist/index.js"]
+CMD ["sh", "-c", "node apps/api/dist/db/migrate.js && node apps/api/dist/index.js"]
