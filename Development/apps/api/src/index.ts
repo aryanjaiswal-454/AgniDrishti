@@ -74,8 +74,17 @@ const generalLimiter = rateLimit({
 app.use("/api", generalLimiter);
 
 // ---------------------------------------------------------------------------
-// 4. Health Check — GET /health
+// 4. Health Check & Root Route
 // ---------------------------------------------------------------------------
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "AgniDrishti API is running limitlessly.",
+    docs: "/api/v1/docs",
+    health: "/health"
+  });
+});
+
 app.get("/health", async (_req: Request, res: Response) => {
   const dbHealth = await testDbConnection();
   const isHealthy = true; // Service is up; db status is reported

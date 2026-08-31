@@ -19,6 +19,8 @@ COPY Development/apps/classifier/ .
 
 COPY data/ ./data/
 
+COPY track_a/ ./track_a/
+
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
