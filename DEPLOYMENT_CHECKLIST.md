@@ -61,7 +61,7 @@ VITE_GOOGLE_CLIENT_ID=119349925509-hjfegkkb9llacqjidr8m7r5806edh141.apps.googleu
 ### **Service 2: API (Backend)**
 
 Build command: `npm ci && npm run build -w @agnidrishti/shared-types && npm run build -w @agnidrishti/api`
-Start command: `node apps/api/dist/db/migrate.js && node apps/api/dist/index.js`
+Start command: `node apps/api/dist/db/migrate.js && node apps/api/dist/workers/index.js & node apps/api/dist/index.js`
 
 **Environment Variables**:
 ```bash
