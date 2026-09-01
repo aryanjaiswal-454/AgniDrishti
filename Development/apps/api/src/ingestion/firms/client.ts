@@ -28,7 +28,10 @@ export class FirmsClient {
    */
   async fetchAreaCsv(options?: FirmsFetchOptions): Promise<{ source: string; csvData: string }> {
     const apiKey = options?.apiKey || config.firms.apiKey;
-    const source = options?.source || config.firms.sources[0] || "VIIRS_SNPP_NRT";
+    let source = config.firms.sources[0] || "VIIRS_SNPP_NRT";
+    if (options?.source && options.source !== "startup" && options.source !== "scheduled-cron") {
+      source = options.source;
+    }
     const areaCoordinates = options?.areaCoordinates || config.firms.areaCoordinates;
     const dayRange = options?.dayRange || config.firms.dayRange;
 

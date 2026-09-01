@@ -15,6 +15,9 @@ import { initSocketServer } from "./realtime";
 const app = express();
 const server = http.createServer(app);
 
+// Enable trust proxy for Render rate-limiting compatibility
+app.set("trust proxy", 1);
+
 // ---------------------------------------------------------------------------
 // 0. Initialize Socket.io Server attached to HTTP server
 // ---------------------------------------------------------------------------

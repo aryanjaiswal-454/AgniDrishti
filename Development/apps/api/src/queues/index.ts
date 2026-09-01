@@ -32,7 +32,7 @@ export async function setupSchedulers(): Promise<void> {
     // 0. Immediate invocation on startup to guarantee data is present!
     await firmsQueue.add(
       "immediate-firms-fetch",
-      { source: "startup" },
+      { source: config.firms.sources[0] || "VIIRS_SNPP_NRT" },
       { removeOnComplete: true, jobId: `immediate-firms-${Date.now()}` }
     );
     logger.info("Queued IMMEDIATE FIRMS fetch on worker startup.");

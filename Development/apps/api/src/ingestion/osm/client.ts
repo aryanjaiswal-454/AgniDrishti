@@ -78,24 +78,41 @@ out center tags;
 
     logger.info(`Fetching OSM industrial facilities for bounding box [${bbox}]...`);
 
-    try {
-      const response = await this.client.post<OverpassResponse>(
-        config.osm.overpassUrl,
-        `data=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+    // Add fallback mirrors because OSM API is heavily rate-limited and often blocks cloud IPs
+    const endpoints = [
+      config.osm.overpassUrl,
+      "https://overpass.kumi.systems/api/interpreter",
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+      "https://z.overpass-api.de/api/interpreter"
+    ];
 
-      const elements = response.data.elements || [];
-      logger.info(`Fetched ${elements.length} raw element(s) from OpenStreetMap.`);
-      return elements;
-    } catch (error: any) {
-      logger.error(`Overpass API Error: ${error.message}`);
-      throw error;
+    let lastError: any = null;
+
+    for (const url of endpoints) {
+      try {
+        logger.info(`Attempting Overpass query to: ${url}`);
+        const response = await this.client.post<OverpassResponse>(
+          url,
+          `data=${encodeURIComponent(query)}`,
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            timeout: Math.max(config.osm.timeoutMs || 60000, 30000) // Ensure at least 30s timeout
+          }
+        );
+
+        const elements = response.data.elements || [];
+        logger.info(`Fetched ${elements.length} raw element(s) from OpenStreetMap via ${url}.`);
+        return elements;
+      } catch (error: any) {
+        logger.warn(`Failed to fetch from ${url}: ${error.message}`);
+        lastError = error;
+      }
     }
+
+    logger.error(`All Overpass API endpoints failed. Last error: ${lastError?.message}`);
+    throw lastError || new Error("Failed to fetch from Overpass API after all retries");
   }
 }
 
