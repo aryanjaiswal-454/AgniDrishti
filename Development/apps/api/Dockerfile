@@ -60,5 +60,5 @@ COPY --from=builder /app/apps/api/ca.pem ./apps/api/ca.pem
 # Expose Render's API port
 EXPOSE 3001
 
-# Start API
-CMD ["sh", "-c", "node apps/api/dist/db/migrate.js && node apps/api/dist/index.js"]
+# Start API and Background Workers
+CMD ["sh", "-c", "node apps/api/dist/db/migrate.js && (node apps/api/dist/workers/index.js & node apps/api/dist/index.js)"]
