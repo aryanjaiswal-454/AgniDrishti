@@ -43,7 +43,7 @@ export const LandingNav: React.FC<LandingNavProps> = ({
                 <span className="text-brand-orange">Agni</span>Drishti
               </span>
               <Badge variant="brand" size="sm">
-                SIH26162
+                AgniDrishti
               </Badge>
             </div>
             <span className="hidden sm:inline-block text-[9px] font-mono tracking-widest text-text-muted uppercase">

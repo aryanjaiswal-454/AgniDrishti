@@ -11,15 +11,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app/track_a/a4:$PYTHONPATH
 
-COPY Development/apps/classifier/requirements.txt .
+COPY apps/classifier/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY Development/apps/classifier/ .
-
-COPY data/ ./data/
-
-COPY track_a/ ./track_a/
+COPY apps/classifier/ .
 
 EXPOSE 8000
 

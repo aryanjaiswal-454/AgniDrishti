@@ -231,7 +231,7 @@ export const LiveSimulationMapSection: React.FC = () => {
                   Click any hotspot beacon to deconstruct real-time pipeline inference.
                 </span>
                 <span className="text-[10px] uppercase text-text-muted/70">
-                  DEMO DATASET • SIH26162
+                  DEMO DATASET • AGNIDRISHTI
                 </span>
               </div>
             </Card>

@@ -36,8 +36,8 @@ services:
 
   classifier:
     build:
-      context: ..
-      dockerfile: Development/apps/classifier/Dockerfile
+      context: .
+      dockerfile: apps/classifier/Dockerfile
     container_name: agnidrishti-classifier-prod
     environment:
       - TRACK_B_CONTRACT_PATH=/app/data/sample/processed/track_b_b4_contract_ready.jsonl
@@ -56,6 +56,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - DB_IGNORE_SSL=true
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-agnidrishti}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agnidrishti}
       - REDIS_URL=redis://redis:6379
@@ -64,7 +65,7 @@ services:
       - FIRMS_MAP_KEY=${FIRMS_MAP_KEY}
       - CLASSIFIER_URL=http://classifier:8000
     ports:
-      - "3001:3001"
+      - "3030:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,6 +83,7 @@ services:
     command: ["node", "apps/api/dist/workers/index.js"]
     environment:
       - NODE_ENV=production
+      - DB_IGNORE_SSL=true
       - DATABASE_URL=postgresql://${POSTGRES_USER:-agnidrishti}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agnidrishti}
       - REDIS_URL=redis://redis:6379
       - FIRMS_MAP_KEY=${FIRMS_MAP_KEY}
@@ -103,8 +105,8 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
-        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3001}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3030}
+        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3030}
     container_name: agnidrishti-web-prod
     ports:
       - "80:80"

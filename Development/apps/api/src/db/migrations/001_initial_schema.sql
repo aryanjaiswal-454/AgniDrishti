@@ -1,7 +1,7 @@
 -- ============================================================================
--- AgniDrishti (SIH26162) — Initial Database Schema Migration
+-- AgniDrishti  — Initial Database Schema Migration
 -- ============================================================================
--- Fully aligned with DataSpecification_SIH26162_FireVigil & Architecture documents.
+-- Fully aligned with DataSpecification_FireVigil & Architecture documents.
 -- PostgreSQL 16 + PostGIS extension, SRID 4326.
 
 -- Enable necessary PostgreSQL extensions
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role user_role NOT NULL DEFAULT 'viewer',
+    role user_role NOT NULL DEFAULT 'admin',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

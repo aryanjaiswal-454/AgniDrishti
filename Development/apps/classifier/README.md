@@ -220,4 +220,4 @@ See `requirements.txt` for full dependency list:
 
 ## License
 
-Part of AgniDrishti - SIH26162
+Part of AgniDrishti

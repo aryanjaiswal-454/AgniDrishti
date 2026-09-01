@@ -1,5 +1,10 @@
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
+
+// Load environment variables BEFORE importing pool
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+
 import { pool, withTransaction } from "./index";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "migrations");

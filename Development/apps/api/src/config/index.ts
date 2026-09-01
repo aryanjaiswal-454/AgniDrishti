@@ -14,7 +14,7 @@ export const config = {
   },
 
   jwt: {
-    secret: process.env.JWT_SECRET || "agnidrishti_sih26162_default_jwt_secret_change_in_production",
+    secret: process.env.JWT_SECRET || "agnidrishti_default_jwt_secret_change_in_production",
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
     cookieName: "agnidrishti_token",
     cookieMaxAgeMs: 7 * 24 * 60 * 60 * 1000, // 7 days

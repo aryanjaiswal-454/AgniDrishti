@@ -5,7 +5,6 @@
 
 ---
 
-> **Smart India Hackathon 2026 — SIH26162**
 > AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources Using NASA FIRMS, OSM & Satellite Data
 
 ---
@@ -167,4 +166,4 @@ Both logic streams merge inside the `apps/classifier` FastAPI service to evaluat
 
 ## License
 
-This project is developed for Smart India Hackathon 2026.
+This project is open-source.

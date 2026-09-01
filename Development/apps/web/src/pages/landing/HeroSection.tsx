@@ -38,7 +38,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-orange" />
             </span>
-            <span className="text-brand-orange font-bold">SIH26162</span>
+            <span className="text-brand-orange font-bold">AgniDrishti</span>
             <span className="text-border-active">•</span>
             <span>National Thermal Anomaly Surveillance</span>
           </div>

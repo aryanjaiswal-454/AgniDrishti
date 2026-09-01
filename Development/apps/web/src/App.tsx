@@ -7,6 +7,10 @@ import { AppShell } from "./components/shell";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { LandingPage } from "./pages/landing/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
+import { SignupPage } from "./pages/SignupPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { DesignSystemShowcase } from "./pages/DesignSystemShowcase";
 import { FacilitiesPage, FacilityDetailPage } from "./pages/facilities";
 import { ThermalEventsPage, ThermalEventDetailPage } from "./pages/events";
@@ -21,12 +25,8 @@ import {
   HelpPage,
 } from "./pages/placeholders";
 
-/**
- * Main application router inner component (accesses AuthContext & Realtime).
- */
 function AppContent() {
   const { status } = useAuth();
-
   const getInitialRoute = (): string => {
     const hash = window.location.hash.replace("#", "");
     if (hash && hash.startsWith("/")) return hash;
@@ -34,7 +34,6 @@ function AppContent() {
     if (path && path !== "/") return path;
     return "/";
   };
-
   const [currentRoute, setCurrentRoute] = useState<string>(getInitialRoute);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ function AppContent() {
         setCurrentRoute("/");
       }
     };
-
     window.addEventListener("popstate", handleLocationChange);
     window.addEventListener("hashchange", handleLocationChange);
     return () => {
@@ -63,24 +61,24 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // If already authenticated and visiting /login, redirect to /command-center
   useEffect(() => {
-    if (status === "authenticated" && currentRoute === "/login") {
-      navigateTo("/command-center");
+    const isAuthRoute = currentRoute === "/login" || currentRoute === "/signup" || currentRoute === "/forgot-password" || currentRoute.startsWith("/reset-password");
+    console.log('[App] Auth redirect check:', { status, currentRoute, isAuthRoute });
+    if (status === "authenticated" && isAuthRoute) {
+      console.log('[App] Redirecting to command center...');
+      // Use a small delay to ensure state updates are complete
+      setTimeout(() => {
+        navigateTo("/command-center");
+      }, 100);
     }
   }, [status, currentRoute]);
 
-  // 1. Standalone Public Landing Experience
-  if (currentRoute === "/" || currentRoute === "/landing") {
-    return <LandingPage onNavigate={navigateTo} />;
-  }
-
-  // 2. Standalone Public Login Route
-  if (currentRoute === "/login") {
-    return <LoginPage onNavigate={navigateTo} />;
-  }
-
-  // 3. Standalone Public Design System Showcase
+  if (currentRoute === "/" || currentRoute === "/landing") return <LandingPage onNavigate={navigateTo} />;
+  if (currentRoute === "/login") return <LoginPage onNavigate={navigateTo} />;
+  if (currentRoute === "/signup") return <SignupPage onNavigate={navigateTo} />;
+  if (currentRoute === "/forgot-password") return <ForgotPasswordPage onNavigate={navigateTo} />;
+  if (currentRoute.startsWith("/reset-password")) return <ResetPasswordPage onNavigate={navigateTo} />;
+  if (currentRoute === "/privacy") return <PrivacyPolicyPage onNavigate={navigateTo} />;
   if (currentRoute === "/design-system") {
     return (
       <AppShell currentRoute={currentRoute} onNavigate={navigateTo}>
@@ -89,49 +87,29 @@ function AppContent() {
     );
   }
 
-  // 4. Protected Application Routes
   const renderProtectedView = () => {
     if (currentRoute.startsWith("/facilities/")) {
       const facilityId = currentRoute.replace("/facilities/", "").split("?")[0];
       return <FacilityDetailPage facilityId={facilityId} onNavigate={navigateTo} />;
     }
-
     if (currentRoute.startsWith("/events/")) {
       const eventId = currentRoute.replace("/events/", "").split("?")[0];
       return <ThermalEventDetailPage eventId={eventId} onNavigate={navigateTo} />;
     }
-
     switch (currentRoute) {
-      case "/command-center":
-        return <CommandCenterPage onNavigate={navigateTo} />;
-      case "/live-map":
-        return <LiveMapPage onNavigate={navigateTo} />;
-      case "/events":
-        return <ThermalEventsPage onNavigate={navigateTo} />;
-      case "/facilities":
-        return <FacilitiesPage onNavigate={navigateTo} />;
-      case "/alerts":
-        return <AlertsPage onNavigate={navigateTo} />;
-      case "/analytics":
-        return <AnalyticsPage onNavigate={navigateTo} />;
-      case "/ai-intelligence":
-        return <AiIntelligencePage onNavigate={navigateTo} />;
+      case "/command-center": return <CommandCenterPage onNavigate={navigateTo} />;
+      case "/live-map": return <LiveMapPage onNavigate={navigateTo} />;
+      case "/events": return <ThermalEventsPage onNavigate={navigateTo} />;
+      case "/facilities": return <FacilitiesPage onNavigate={navigateTo} />;
+      case "/alerts": return <AlertsPage onNavigate={navigateTo} />;
+      case "/analytics": return <AnalyticsPage onNavigate={navigateTo} />;
+      case "/ai-intelligence": return <AiIntelligencePage onNavigate={navigateTo} />;
       case "/data-sources":
-        return (
-          <ProtectedRoute requiredRoles={["admin", "analyst"]} onNavigate={navigateTo}>
-            <DataSourcesPage onNavigate={navigateTo} />
-          </ProtectedRoute>
-        );
+        return <ProtectedRoute requiredRoles={["admin", "analyst"]} onNavigate={navigateTo}><DataSourcesPage onNavigate={navigateTo} /></ProtectedRoute>;
       case "/settings":
-        return (
-          <ProtectedRoute requiredRoles={["admin"]} onNavigate={navigateTo}>
-            <SettingsPage onNavigate={navigateTo} />
-          </ProtectedRoute>
-        );
-      case "/help":
-        return <HelpPage onNavigate={navigateTo} />;
-      default:
-        return <CommandCenterPage onNavigate={navigateTo} />;
+        return <ProtectedRoute requiredRoles={["admin"]} onNavigate={navigateTo}><SettingsPage onNavigate={navigateTo} /></ProtectedRoute>;
+      case "/help": return <HelpPage onNavigate={navigateTo} />;
+      default: return <CommandCenterPage onNavigate={navigateTo} />;
     }
   };
 
@@ -146,9 +124,6 @@ function AppContent() {
   );
 }
 
-/**
- * AgniDrishti — Root Application with QueryClientProvider and AuthProvider
- */
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -160,4 +135,3 @@ export function App() {
 }
 
 export default App;
-

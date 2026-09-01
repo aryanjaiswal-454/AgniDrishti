@@ -25,7 +25,7 @@ export class OsmOverpassClient {
     this.client = axios.create({
       timeout: config.osm.timeoutMs,
       headers: {
-        "User-Agent": "AgniDrishti-SIH26162-FacilitySync/1.0",
+        "User-Agent": "AgniDrishti-FacilitySync/1.0",
         Accept: "application/json",
       },
     });

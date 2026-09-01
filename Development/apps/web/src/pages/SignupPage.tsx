@@ -2,20 +2,22 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card } from "../components/ui";
-import { Flame, Lock, Mail, Eye, EyeOff, AlertCircle, Shield } from "lucide-react";
+import { Flame, Lock, Mail, Eye, EyeOff, AlertCircle, Shield, User as UserIcon } from "lucide-react";
 import { fadeInVariants, staggerContainerVariants } from "../design-system/motion";
 
-export interface LoginPageProps {
+export interface SignupPageProps {
   onNavigate: (route: string) => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
-  const { login, googleLogin, clearError, status } = useAuth();
+export const SignupPage: React.FC<SignupPageProps> = ({ onNavigate }) => {
+  const { signup, googleLogin, clearError, status } = useAuth();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
+  const [isSubmittingSignup, setIsSubmittingSignup] = useState(false);
   const [isSubmittingGoogle, setIsSubmittingGoogle] = useState(false);
 
   // Clear any lingering auth context errors when this page mounts
@@ -27,17 +29,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     e.preventDefault();
     setFormError(null);
 
-    if (!email || !email.trim()) return setFormError("Please enter your email.");
-    if (!password) return setFormError("Please enter your password.");
+    if (!name.trim()) return setFormError("Please enter your name.");
+    if (!email.trim()) return setFormError("Please enter your email.");
+    if (!password) return setFormError("Please enter a password.");
+    if (password.length < 8) return setFormError("Password must be at least 8 characters long.");
+    if (password !== confirmPassword) return setFormError("Passwords do not match.");
 
-    setIsSubmittingEmail(true);
+    setIsSubmittingSignup(true);
     try {
-      await login(email.trim(), password);
-      // Removed manual onNavigate; App.tsx handles redirection after status becomes authenticated
+      await signup(name.trim(), email.trim(), password);
+      // App.tsx handles redirection after status becomes authenticated
     } catch (err: any) {
-      setFormError(err.message || "Invalid credentials.");
+      setFormError(err.message || "Signup failed. Please try again.");
     } finally {
-      setIsSubmittingEmail(false);
+      setIsSubmittingSignup(false);
     }
   };
 
@@ -64,7 +69,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     <div className="min-h-screen w-full bg-void bg-tactical-grid flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden select-none">
       <div className="absolute inset-0 bg-radial-vignette pointer-events-none" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-brand-orange/5 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-intelligence-cyan/5 blur-[100px] rounded-full pointer-events-none" />
 
       <motion.div initial="hidden" animate="visible" variants={staggerContainerVariants} className="w-full max-w-md relative z-10 space-y-6">
         <motion.div variants={fadeInVariants} className="text-center space-y-2">
@@ -72,10 +76,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             <Flame className="w-8 h-8" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-text-primary">
-            <span className="text-brand-orange">Agni</span>Drishti
+            Create Account
           </h1>
           <p className="text-xs sm:text-sm font-mono font-medium tracking-[0.2em] text-intelligence-cyan uppercase">
-            AI-Powered Thermal Intelligence
+            Join AgniDrishti
           </p>
         </motion.div>
 
@@ -90,6 +94,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               )}
 
               <Input
+                label="Full Name"
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => { setName(e.target.value); setFormError(null); }}
+                leftIcon={<UserIcon className="w-4 h-4" />}
+                required
+              />
+
+              <Input
                 label="Email"
                 type="email"
                 placeholder="you@example.com"
@@ -100,32 +114,36 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 required
               />
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-mono tracking-wider text-text-muted uppercase">Password</span>
-                  <button type="button" onClick={() => handleNavigate("/forgot-password")} className="text-[10px] text-brand-orange hover:text-brand-amber font-mono underline outline-none">
-                    Forgot Password?
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Min 8 characters"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setFormError(null); }}
+                leftIcon={<Lock className="w-4 h-4" />}
+                rightIcon={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                </div>
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••••••"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setFormError(null); }}
-                  leftIcon={<Lock className="w-4 h-4" />}
-                  rightIcon={
-                    <button type="button" tabIndex={-1} onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  }
-                  required
-                />
-              </div>
+                }
+                required
+              />
+
+              <Input
+                label="Confirm Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Re-enter password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setFormError(null); }}
+                leftIcon={<Lock className="w-4 h-4" />}
+                required
+              />
 
               <div className="pt-2">
-                <Button type="submit" variant="primary" size="lg" className="w-full font-display font-bold tracking-wide" leftIcon={<Shield className="w-4 h-4" />} isLoading={isSubmittingEmail || status === "loading"}>
-                  Login
+                <Button type="submit" variant="primary" size="lg" className="w-full font-display font-bold tracking-wide" leftIcon={<Shield className="w-4 h-4" />} isLoading={isSubmittingSignup || status === "loading"}>
+                  Sign Up
                 </Button>
               </div>
             </form>
@@ -145,26 +163,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   onClick={handleGoogleLogin}
                   isLoading={isSubmittingGoogle || status === "loading"}
                 >
-                  Sign in with Google
+                  Sign up with Google
                 </Button>
               </div>
 
               <div className="pt-2 text-center text-sm text-text-muted font-mono mt-2">
-                Don't have an account?{" "}
-                <button type="button" onClick={() => handleNavigate("/signup")} className="text-brand-orange hover:text-brand-amber underline transition-colors">
-                  Sign up here
+                Already have an account?{" "}
+                <button type="button" onClick={() => handleNavigate("/login")} className="text-brand-orange hover:text-brand-amber underline transition-colors">
+                  Login here
                 </button>
               </div>
             </div>
           </Card>
-        </motion.div>
-
-        {/* Footer Meta */}
-        <motion.div variants={fadeInVariants} className="text-center space-y-2">
-           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-2 border border-border-subtle text-[11px] font-mono text-text-muted">
-            <Shield className="w-3.5 h-3.5 text-brand-orange" />
-            <span>AgniDrishti Platform</span>
-          </div>
         </motion.div>
       </motion.div>
     </div>

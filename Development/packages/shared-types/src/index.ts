@@ -1,7 +1,7 @@
 /**
  * @agnidrishti/shared-types
  *
- * Shared TypeScript type definitions for the AgniDrishti platform (SIH26162).
+ * Shared TypeScript type definitions for the AgniDrishti platform.
  * Provides the single source of truth for data models, API contracts,
  * and AI/ML inference outputs across the monorepo.
  */
@@ -27,7 +27,7 @@ export type UserRole = "admin" | "analyst" | "viewer";
 
 /**
  * Industrial facility categories mapped from OpenStreetMap and industrial registries.
- * Aligned with SIH26162 problem statement requirements.
+ * Aligned with platform problem statement requirements.
  */
 export type FacilityType =
   | "refinery"

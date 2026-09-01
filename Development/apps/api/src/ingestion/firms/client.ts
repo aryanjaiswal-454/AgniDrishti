@@ -16,7 +16,7 @@ export class FirmsClient {
     this.client = axios.create({
       timeout: config.firms.timeoutMs,
       headers: {
-        "User-Agent": "AgniDrishti-SIH26162-Ingestion/1.0",
+        "User-Agent": "AgniDrishti-Ingestion/1.0",
         Accept: "text/csv,text/plain",
       },
     });

@@ -192,7 +192,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 </button>
               )}
               <div className="flex items-center justify-between px-1">
-                <span>SIH26162</span>
+                <span>AgniDrishti</span>
                 <span className="text-brand-orange">Command Center</span>
               </div>
             </div>

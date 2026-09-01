@@ -58,7 +58,7 @@ export const StatusStrip: React.FC = () => {
           <span className="text-text-muted">({timeUtc})</span>
         </div>
         <span className="hidden sm:inline-block px-1.5 py-0.2 rounded bg-surface-2 border border-border-subtle text-[10px] text-text-muted">
-          SIH26162
+          AGNIDRISHTI
         </span>
       </div>
     </footer>

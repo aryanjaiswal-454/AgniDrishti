@@ -9,7 +9,7 @@ export const HelpPage: React.FC<{ onNavigate: (route: string) => void }> = () =>
       <PageHeader
         title="Operations Manual & Documentation"
         subtitle="Standard operating procedures for thermal anomaly verification and hazard response."
-        badge={<Badge variant="cyan">SIH26162 Documentation</Badge>}
+        badge={<Badge variant="cyan">AgniDrishti Documentation</Badge>}
         breadcrumbs={[{ label: "AgniDrishti" }, { label: "Help & Docs" }]}
       />
 
@@ -34,7 +34,7 @@ export const HelpPage: React.FC<{ onNavigate: (route: string) => void }> = () =>
             <Shield className="w-5 h-5" />
           </div>
           <h4 className="text-base font-display font-semibold text-text-primary">
-            PS Context: SIH26162
+            AgniDrishti Platform
           </h4>
           <p className="text-xs text-text-secondary">
             AI-Based Detection and Classification of Industrial Fires and Persistent Thermal Sources (NTRO / Disaster Management).

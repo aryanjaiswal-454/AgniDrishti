@@ -28,7 +28,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({
         <motion.div variants={fadeInVariants} className="inline-flex items-center gap-2">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-2 border border-brand-orange/40 text-xs font-mono text-brand-orange shadow-brand-glow">
             <ShieldCheck className="w-4 h-4 text-brand-orange" />
-            <span>OPERATIONAL READINESS • SMART INDIA HACKATHON 2026</span>
+            <span>OPERATIONAL READINESS • AGNIDRISHTI</span>
           </div>
         </motion.div>
 

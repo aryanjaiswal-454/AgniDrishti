@@ -1,6 +1,6 @@
 /**
  * AgniDrishti Design System Tokens
- * SIH26162 — AI-Powered Thermal Intelligence
+ * AgniDrishti — AI-Powered Thermal Intelligence
  */
 
 export const colors = {

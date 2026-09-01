@@ -1,3 +1,5 @@
+import { auth } from "../lib/firebase";
+
 /**
  * AgniDrishti Typed API Error Representation
  */
@@ -100,6 +102,14 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   };
 
   try {
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      (defaultHeaders as any)["Authorization"] = `Bearer ${token}`;
+      console.log('API request with auth token:', endpoint);
+    } else {
+      console.log('API request without auth token:', endpoint);
+    }
+
     const response = await fetch(url, {
       ...customConfig,
       headers: {
@@ -130,6 +140,12 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
 
     if (!response.ok) {
       const errorPayload = responseData?.error || {};
+      console.error('API error response:', {
+        status: response.status,
+        endpoint,
+        error: errorPayload,
+        responseData
+      });
       throw new ApiClientError(
         response.status,
         errorPayload.code || `HTTP_${response.status}`,
@@ -153,9 +169,11 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     }
 
     if (error.name === "AbortError") {
+      console.error('Request timeout:', endpoint);
       throw new ApiClientError(499, "CLIENT_CLOSED_REQUEST", "Request was cancelled or timed out.");
     }
 
+    console.error('Network error:', { endpoint, error });
     throw new ApiClientError(
       0,
       "NETWORK_ERROR",

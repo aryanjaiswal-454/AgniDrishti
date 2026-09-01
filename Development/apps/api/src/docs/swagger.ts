@@ -9,7 +9,7 @@ const options: swaggerJsdoc.Options = {
       title: "AgniDrishti REST API",
       version: "1.0.0",
       description:
-        "AI-Powered Thermal Intelligence platform for detection and classification of industrial fires and persistent thermal sources (SIH26162).",
+        "AI-Powered Thermal Intelligence platform for detection and classification of industrial fires and persistent thermal sources .",
       contact: {
         name: "AgniDrishti Development Team",
       },

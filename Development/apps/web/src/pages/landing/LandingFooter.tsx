@@ -25,7 +25,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <span className="text-brand-orange">Agni</span>Drishti
               </span>
               <Badge variant="brand" size="sm">
-                SIH26162
+                AgniDrishti
               </Badge>
             </div>
             <span className="text-[10px] text-text-muted">
@@ -66,7 +66,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
         {/* Copyright & Hackathon Info */}
         <div className="text-right text-[10px] text-text-muted space-y-0.5">
-          <div>Smart India Hackathon 2026 • Problem Statement SIH26162</div>
+          <div>AgniDrishti Platform</div>
           <div>Built with React, Vite, Node.js, PostGIS & PyTorch</div>
         </div>
       </div>

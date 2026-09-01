@@ -143,7 +143,7 @@ export const AiClassificationSection: React.FC = () => {
                 <span>Deterministic PostGIS spatial validation eliminates 99.1% of false positive alarms.</span>
               </span>
               <span className="hidden sm:inline-block text-[10px] uppercase text-text-muted">
-                SIH26162 CONTRACT
+                AGNIDRISHTI PLATFORM
               </span>
             </div>
           </Card>

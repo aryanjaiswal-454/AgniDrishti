@@ -1,0 +1,716 @@
+<title>Auth Debug Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --void: #0A0E14;
+  --surface: #1A1F29;
+  --surface-2: #252B37;
+  --border: #2D3540;
+  --brand-orange: #FF6B35;
+  --intelligence-cyan: #00D9FF;
+  --text-primary: #E8E8E8;
+  --text-muted: #9CA3AF;
+  --text-dim: #6B7280;
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+}
+
+body {
+  background: var(--void);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--brand-orange);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--intelligence-cyan);
+  font-weight: 500;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+
+.status-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-loading {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--status-info);
+  border: 1px solid var(--status-info);
+}
+
+.status-authenticated {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--status-success);
+  border: 1px solid var(--status-success);
+}
+
+.status-unauthenticated {
+  background: rgba(107, 114, 128, 0.2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.status-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--status-error);
+  border: 1px solid var(--status-error);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.log-container {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.log-entry {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-timestamp {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.log-level {
+  flex-shrink: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.log-level.info { color: var(--status-info); }
+.log-level.success { color: var(--status-success); }
+.log-level.warn { color: var(--status-warning); }
+.log-level.error { color: var(--status-error); }
+
+.log-message {
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.api-call {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.api-call:last-child {
+  margin-bottom: 0;
+}
+
+.api-method {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--status-info);
+  flex-shrink: 0;
+}
+
+.api-endpoint {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.api-status.success {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--status-success);
+}
+
+.api-status.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--status-error);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--intelligence-cyan);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  margin-left: 0.5rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+button {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: var(--brand-orange);
+  border-color: var(--brand-orange);
+  color: var(--void);
+}
+
+button.secondary {
+  background: transparent;
+}
+
+button.secondary:hover {
+  background: var(--surface-2);
+  border-color: var(--intelligence-cyan);
+  color: var(--intelligence-cyan);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+</style>
+
+<div class="container">
+  <header>
+    <h1>🔍 AgniDrishti Auth Debugger</h1>
+    <div class="subtitle">Real-time Authentication Flow Monitor</div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Firebase Status</span>
+        <span class="status-badge status-unauthenticated" id="firebase-status">Detecting</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">User Email</span>
+        <span class="info-value" id="firebase-email">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">User ID</span>
+        <span class="info-value" id="firebase-uid">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Token Valid</span>
+        <span class="info-value" id="firebase-token">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Backend Status</span>
+        <span class="status-badge status-unauthenticated" id="backend-status">Not Checked</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">API Endpoint</span>
+        <span class="info-value" id="api-endpoint">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Last Response</span>
+        <span class="info-value" id="last-response">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">User Role</span>
+        <span class="info-value" id="user-role">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Auth Context</span>
+        <span class="status-badge status-unauthenticated" id="context-status">Loading</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Current Route</span>
+        <span class="info-value" id="current-route">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Should Redirect</span>
+        <span class="info-value" id="should-redirect">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Last Update</span>
+        <span class="info-value" id="last-update">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card full-width">
+    <div class="card-header">
+      <span class="card-title">Recent API Calls</span>
+      <span class="info-label" id="api-count">0 calls</span>
+    </div>
+    <div id="api-calls-container">
+      <div class="empty-state">No API calls recorded yet. Make a request to see activity.</div>
+    </div>
+  </div>
+
+  <div class="card full-width">
+    <div class="card-header">
+      <span class="card-title">Live Console Log<span class="pulse"></span></span>
+      <span class="info-label" id="log-count">0 entries</span>
+    </div>
+    <div class="log-container" id="log-container">
+      <div class="log-entry">
+        <span class="log-timestamp">--:--:--</span>
+        <span class="log-level info">INFO</span>
+        <span class="log-message">Debugger initialized. Monitoring auth flow...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button onclick="refreshStatus()">🔄 Refresh Status</button>
+    <button class="secondary" onclick="clearLogs()">🗑️ Clear Logs</button>
+    <button class="secondary" onclick="exportLogs()">📥 Export Logs</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.7.1/firebase-auth-compat.min.js"></script>
+
+<script>
+// Firebase configuration for AgniDrishti
+const firebaseConfig = {
+  apiKey: "AIzaSyBpN7vZ7rMOc8-ue7MfWYOHvVQMhPLBmhE",
+  authDomain: "agnidrishti-f8bbb.firebaseapp.com",
+  projectId: "agnidrishti-f8bbb",
+  storageBucket: "agnidrishti-f8bbb.firebasestorage.app",
+  messagingSenderId: "945066952274",
+  appId: "1:945066952274:web:dd72de16d46b00b04f3a7f"
+};
+
+// Initialize Firebase
+let auth;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  addLog('success', 'Firebase initialized successfully');
+} catch (error) {
+  addLog('error', `Firebase initialization failed: ${error.message}`);
+}
+
+// State tracking
+const state = {
+  apiCalls: [],
+  logs: [],
+  firebaseUser: null,
+  backendUser: null,
+  authStatus: 'loading'
+};
+
+// API endpoint
+const API_BASE_URL = 'http://localhost:8087/api/v1';
+
+// Utility: Format timestamp
+function formatTime() {
+  const now = new Date();
+  return now.toTimeString().split(' ')[0];
+}
+
+// Add log entry
+function addLog(level, message) {
+  const entry = {
+    timestamp: formatTime(),
+    level,
+    message
+  };
+  state.logs.push(entry);
+
+  const container = document.getElementById('log-container');
+  const logEntry = document.createElement('div');
+  logEntry.className = 'log-entry';
+  logEntry.innerHTML = `
+    <span class="log-timestamp">${entry.timestamp}</span>
+    <span class="log-level ${level}">${level.toUpperCase()}</span>
+    <span class="log-message">${message}</span>
+  `;
+  container.appendChild(logEntry);
+  container.scrollTop = container.scrollHeight;
+
+  document.getElementById('log-count').textContent = `${state.logs.length} entries`;
+}
+
+// Track API call
+function trackApiCall(method, endpoint, status, statusText) {
+  const call = {
+    timestamp: formatTime(),
+    method,
+    endpoint,
+    status,
+    statusText
+  };
+  state.apiCalls.unshift(call);
+
+  renderApiCalls();
+  addLog(status >= 200 && status < 300 ? 'success' : 'error',
+    `${method} ${endpoint} → ${status} ${statusText}`);
+}
+
+// Render API calls
+function renderApiCalls() {
+  const container = document.getElementById('api-calls-container');
+
+  if (state.apiCalls.length === 0) {
+    container.innerHTML = '<div class="empty-state">No API calls recorded yet. Make a request to see activity.</div>';
+    return;
+  }
+
+  container.innerHTML = state.apiCalls.slice(0, 5).map(call => `
+    <div class="api-call">
+      <span class="api-method">${call.method}</span>
+      <span class="api-endpoint">${call.endpoint}</span>
+      <span class="api-status ${call.status >= 200 && call.status < 300 ? 'success' : 'error'}">${call.status}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('api-count').textContent = `${state.apiCalls.length} calls`;
+}
+
+// Check backend status
+async function checkBackendStatus() {
+  if (!state.firebaseUser) {
+    addLog('warn', 'Cannot check backend: No Firebase user authenticated');
+    return;
+  }
+
+  try {
+    const token = await state.firebaseUser.getIdToken();
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
+
+    trackApiCall('GET', '/auth/me', response.status, response.statusText);
+
+    if (response.ok) {
+      const data = await response.json();
+      state.backendUser = data.data?.user;
+
+      document.getElementById('backend-status').textContent = 'Connected';
+      document.getElementById('backend-status').className = 'status-badge status-authenticated';
+      document.getElementById('api-endpoint').textContent = API_BASE_URL;
+      document.getElementById('last-response').textContent = `${response.status} OK`;
+      document.getElementById('user-role').textContent = state.backendUser?.role || '—';
+
+      addLog('success', `Backend user profile fetched: ${state.backendUser?.email}`);
+      updateAuthContext();
+    } else {
+      document.getElementById('backend-status').textContent = 'Error';
+      document.getElementById('backend-status').className = 'status-badge status-error';
+      document.getElementById('last-response').textContent = `${response.status} ${response.statusText}`;
+      addLog('error', `Backend authentication failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    addLog('error', `Backend check failed: ${error.message}`);
+    document.getElementById('backend-status').textContent = 'Error';
+    document.getElementById('backend-status').className = 'status-badge status-error';
+  }
+}
+
+// Update auth context display
+function updateAuthContext() {
+  const currentRoute = window.location.hash.replace('#', '') || '/';
+  const isAuthRoute = ['/login', '/signup', '/forgot-password'].includes(currentRoute) || currentRoute.startsWith('/reset-password');
+  const isAuthenticated = state.firebaseUser && state.backendUser;
+  const shouldRedirect = isAuthenticated && isAuthRoute;
+
+  document.getElementById('current-route').textContent = currentRoute;
+  document.getElementById('should-redirect').textContent = shouldRedirect ? 'YES' : 'NO';
+  document.getElementById('last-update').textContent = formatTime();
+
+  if (isAuthenticated) {
+    document.getElementById('context-status').textContent = 'Authenticated';
+    document.getElementById('context-status').className = 'status-badge status-authenticated';
+    state.authStatus = 'authenticated';
+  } else {
+    document.getElementById('context-status').textContent = 'Unauthenticated';
+    document.getElementById('context-status').className = 'status-badge status-unauthenticated';
+    state.authStatus = 'unauthenticated';
+  }
+
+  if (shouldRedirect) {
+    addLog('info', 'Redirect condition met: authenticated user on auth route');
+    addLog('warn', 'Expected: Should redirect to /command-center');
+  }
+}
+
+// Listen to Firebase auth state changes
+if (auth) {
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      state.firebaseUser = user;
+
+      document.getElementById('firebase-status').textContent = 'Authenticated';
+      document.getElementById('firebase-status').className = 'status-badge status-authenticated';
+      document.getElementById('firebase-email').textContent = user.email || '—';
+      document.getElementById('firebase-uid').textContent = user.uid ? user.uid.substring(0, 12) + '...' : '—';
+
+      addLog('success', `Firebase user authenticated: ${user.email}`);
+
+      try {
+        const token = await user.getIdToken();
+        document.getElementById('firebase-token').textContent = '✓ Valid';
+        addLog('info', 'Firebase ID token retrieved');
+
+        // Check backend status
+        await checkBackendStatus();
+      } catch (error) {
+        document.getElementById('firebase-token').textContent = '✗ Invalid';
+        addLog('error', `Token retrieval failed: ${error.message}`);
+      }
+    } else {
+      state.firebaseUser = null;
+      state.backendUser = null;
+
+      document.getElementById('firebase-status').textContent = 'Not Authenticated';
+      document.getElementById('firebase-status').className = 'status-badge status-unauthenticated';
+      document.getElementById('firebase-email').textContent = '—';
+      document.getElementById('firebase-uid').textContent = '—';
+      document.getElementById('firebase-token').textContent = '—';
+
+      document.getElementById('backend-status').textContent = 'Not Checked';
+      document.getElementById('backend-status').className = 'status-badge status-unauthenticated';
+
+      addLog('info', 'No Firebase user authenticated');
+      updateAuthContext();
+    }
+  });
+}
+
+// Refresh status manually
+function refreshStatus() {
+  addLog('info', 'Refreshing authentication status...');
+  if (state.firebaseUser) {
+    checkBackendStatus();
+  } else {
+    addLog('warn', 'No authenticated user to check');
+  }
+  updateAuthContext();
+}
+
+// Clear logs
+function clearLogs() {
+  state.logs = [];
+  document.getElementById('log-container').innerHTML = `
+    <div class="log-entry">
+      <span class="log-timestamp">${formatTime()}</span>
+      <span class="log-level info">INFO</span>
+      <span class="log-message">Logs cleared</span>
+    </div>
+  `;
+  document.getElementById('log-count').textContent = '1 entry';
+  addLog('info', 'Debugger reset. Monitoring auth flow...');
+}
+
+// Export logs
+function exportLogs() {
+  const logData = {
+    timestamp: new Date().toISOString(),
+    firebaseUser: state.firebaseUser ? {
+      email: state.firebaseUser.email,
+      uid: state.firebaseUser.uid
+    } : null,
+    backendUser: state.backendUser,
+    authStatus: state.authStatus,
+    apiCalls: state.apiCalls,
+    logs: state.logs
+  };
+
+  const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `agnidrishti-auth-debug-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  addLog('success', 'Debug logs exported');
+}
+
+// Listen to hash changes
+window.addEventListener('hashchange', () => {
+  updateAuthContext();
+  addLog('info', `Route changed: ${window.location.hash.replace('#', '') || '/'}`);
+});
+
+// Initial context update
+updateAuthContext();
+</script>

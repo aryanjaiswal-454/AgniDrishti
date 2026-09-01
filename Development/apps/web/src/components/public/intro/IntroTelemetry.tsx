@@ -30,7 +30,7 @@ export const IntroTelemetry: React.FC = () => {
       </div>
 
       <div className="absolute bottom-8 right-8 text-[10px] font-mono text-text-muted/60 text-right space-y-0.5">
-        <div>SIH26162 &bull; DISASTER MGMT</div>
+        <div>AGNIDRISHTI &bull; DISASTER MGMT</div>
         <div>SIMULATION PREVIEW</div>
       </div>
     </div>

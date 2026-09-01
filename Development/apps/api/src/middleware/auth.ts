@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken, JWTPayload } from "../utils/jwt";
 import { AuthenticationError, ForbiddenError } from "../utils/errors";
-import { UserRole } from "@agnidrishti/shared-types";
-import config from "../config";
+import { UserRole, User } from "@agnidrishti/shared-types";
+import { firebaseAuth } from "../config/firebase";
+import { query } from "../db";
+import { JWTPayload } from "../utils/jwt";
 
 // Extend Express Request to include user payload
 declare global {
@@ -14,18 +15,13 @@ declare global {
 }
 
 /**
- * Authentication middleware: extracts JWT from httpOnly cookie or Authorization header.
+ * Authentication middleware: extracts Firebase ID token from Authorization header,
+ * verifies it, and syncs/fetches the user role from PostgreSQL.
  */
-export function authenticate(req: Request, _res: Response, next: NextFunction) {
+export async function authenticate(req: Request, _res: Response, next: NextFunction) {
   let token: string | undefined;
 
-  // 1. Check httpOnly cookie
-  if (req.cookies && req.cookies[config.jwt.cookieName]) {
-    token = req.cookies[config.jwt.cookieName];
-  }
-
-  // 2. Check Authorization header as fallback (Bearer <token>)
-  if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+  if (req.headers.authorization?.startsWith("Bearer ")) {
     token = req.headers.authorization.substring(7);
   }
 
@@ -34,11 +30,42 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
   }
 
   try {
-    const decoded = verifyToken(token);
-    req.user = decoded;
+    const decoded = await firebaseAuth.verifyIdToken(token);
+
+    // We expect the email to act as the primary unique identifier for synchronization
+    const email = decoded.email;
+    if (!email) {
+      return next(new AuthenticationError("Token does not contain an email address"));
+    }
+
+    // Try to find the user in PostgreSQL
+    let res = await query<User>("SELECT id, name, email, role, created_at FROM users WHERE LOWER(email) = LOWER($1);", [email]);
+    let dbUser = res.rows[0];
+
+    if (!dbUser) {
+      // Auto-create user for first-time Firebase logins
+      // Uses database default role (currently 'admin' for development)
+      const name = decoded.name || email.split("@")[0] || "Firebase User";
+      const insertRes = await query<User>(
+        `INSERT INTO users (name, email, auth_provider)
+         VALUES ($1, $2, 'firebase')
+         RETURNING id, name, email, role, created_at;`,
+        [name, email]
+      );
+      dbUser = insertRes.rows[0];
+      console.log('Auto-created new user:', dbUser.email, 'with role:', dbUser.role);
+    }
+
+    req.user = {
+      userId: dbUser.id,
+      email: dbUser.email,
+      name: dbUser.name,
+      role: dbUser.role as UserRole
+    };
     next();
   } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
+    console.error("Firebase auth error:", err.message);
+    if (err.code === "auth/id-token-expired") {
       return next(new AuthenticationError("Authentication token has expired"));
     }
     return next(new AuthenticationError("Invalid authentication token"));
@@ -48,18 +75,28 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
 /**
  * Optional authentication: attaches user if token is valid, but does not block if absent.
  */
-export function optionalAuthenticate(req: Request, _res: Response, next: NextFunction) {
+export async function optionalAuthenticate(req: Request, _res: Response, next: NextFunction) {
   let token: string | undefined;
 
-  if (req.cookies && req.cookies[config.jwt.cookieName]) {
-    token = req.cookies[config.jwt.cookieName];
-  } else if (req.headers.authorization?.startsWith("Bearer ")) {
+  if (req.headers.authorization?.startsWith("Bearer ")) {
     token = req.headers.authorization.substring(7);
   }
 
   if (token) {
     try {
-      req.user = verifyToken(token);
+      const decoded = await firebaseAuth.verifyIdToken(token);
+      if (decoded.email) {
+        const res = await query<User>("SELECT id, name, email, role, created_at FROM users WHERE LOWER(email) = LOWER($1);", [decoded.email]);
+        const dbUser = res.rows[0];
+        if (dbUser) {
+          req.user = {
+            userId: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            role: dbUser.role as UserRole
+          };
+        }
+      }
     } catch {
       // Ignore invalid optional tokens
     }
@@ -87,4 +124,3 @@ export function requireRole(...allowedRoles: UserRole[]) {
     next();
   };
 }
-

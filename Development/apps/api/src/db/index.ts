@@ -11,7 +11,7 @@ dotenv.config({
 console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
 
 // Aiven CA certificate
-const caPath = path.resolve(process.cwd(), "apps/api/ca.pem");
+const caPath = path.resolve(__dirname, "../../ca.pem");
 
 console.log("Aiven CA certificate exists:", fs.existsSync(caPath));
 console.log("Aiven CA certificate path:", caPath);

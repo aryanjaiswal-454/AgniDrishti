@@ -157,7 +157,7 @@ export const IntelligenceIntro: React.FC<IntelligenceIntroProps> = ({
 
       {/* Footer Status Hint */}
       <footer className="w-full max-w-7xl mx-auto flex items-center justify-between text-[10px] font-mono text-text-muted/50 z-30">
-        <div>SIH26162 &bull; NATIONAL SURVEILLANCE</div>
+        <div>AGNIDRISHTI &bull; NATIONAL SURVEILLANCE</div>
         <div>PRESS ESC TO SKIP</div>
       </footer>
     </div>

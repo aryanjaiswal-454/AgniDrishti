@@ -67,7 +67,7 @@ export const DesignSystemShowcase: React.FC = () => {
               </Badge>
             </div>
             <p className="text-xs font-mono uppercase tracking-widest text-text-muted mt-0.5">
-              SIH26162 • AI-Powered Thermal Intelligence
+              AgniDrishti • AI-Powered Thermal Intelligence
             </p>
           </div>
         </motion.div>
