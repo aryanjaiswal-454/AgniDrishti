@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { createSocketClient } from "./socket";
 import { REALTIME_EVENTS, AlertCreatedPayload, ConnectionStatus } from "./events";
 import { AlertToastContainer } from "./AlertToastContainer";
+import { auth } from "../lib/firebase";
 
 export interface RealtimeContextType {
   socket: Socket | null;
@@ -47,73 +48,97 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
   }, []);
 
   useEffect(() => {
-    // Only connect when user is actively authenticated
-    if (authStatus !== "authenticated") {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-        setConnectionStatus("disconnected");
+    let isMounted = true;
+    let localSocket: Socket | null = null;
+    let fallbackTimeout: ReturnType<typeof setTimeout>;
+
+    const initSocket = async () => {
+      // Only connect when user is actively authenticated
+      if (authStatus !== "authenticated") {
+        if (socket) {
+          socket.disconnect();
+          setSocket(null);
+          setConnectionStatus("disconnected");
+        }
+        return;
       }
-      return;
-    }
 
-    const newSocket = createSocketClient();
-    setSocket(newSocket);
-    setConnectionStatus("connecting");
+      setConnectionStatus("connecting");
 
-    newSocket.on("connect", () => {
-      setConnectionStatus("connected");
-    });
+      let token: string | undefined;
+      try {
+        if (auth.currentUser) {
+          token = await auth.currentUser.getIdToken();
+        }
+      } catch (err) {
+        console.error("Failed to get Firebase token for socket:", err);
+      }
 
-    newSocket.on("disconnect", (reason) => {
-      if (reason === "io server disconnect") {
-        setConnectionStatus("disconnected");
-      } else {
+      if (!isMounted) return;
+
+      const newSocket = createSocketClient(token);
+      localSocket = newSocket;
+      setSocket(newSocket);
+
+      newSocket.on("connect", () => {
+        setConnectionStatus("connected");
+      });
+
+      newSocket.on("disconnect", (reason) => {
+        if (reason === "io server disconnect") {
+          setConnectionStatus("disconnected");
+        } else {
+          setConnectionStatus("degraded");
+        }
+      });
+
+      newSocket.on("connect_error", () => {
         setConnectionStatus("degraded");
-      }
-    });
+      });
 
-    newSocket.on("connect_error", () => {
-      setConnectionStatus("degraded");
-    });
+      newSocket.on("reconnect", () => {
+        setConnectionStatus("connected");
+      });
 
-    newSocket.on("reconnect", () => {
-      setConnectionStatus("connected");
-    });
+      // Real-time alert listener
+      newSocket.on(REALTIME_EVENTS.ALERT_CREATED, (alert: AlertCreatedPayload) => {
+        // 1. Guard against non-high severity
+        if (alert.severity !== "high") return;
 
-    // Real-time alert listener
-    newSocket.on(REALTIME_EVENTS.ALERT_CREATED, (alert: AlertCreatedPayload) => {
-      // 1. Guard against non-high severity
-      if (alert.severity !== "high") return;
+        // 2. Guard against duplicate alert notifications
+        if (seenAlertIds.current.has(alert.id)) return;
+        seenAlertIds.current.add(alert.id);
 
-      // 2. Guard against duplicate alert notifications
-      if (seenAlertIds.current.has(alert.id)) return;
-      seenAlertIds.current.add(alert.id);
+        // Keep seen set bounded
+        if (seenAlertIds.current.size > 200) {
+          const firstKey = seenAlertIds.current.values().next().value;
+          if (firstKey) seenAlertIds.current.delete(firstKey);
+        }
 
-      // Keep seen set bounded
-      if (seenAlertIds.current.size > 200) {
-        const firstKey = seenAlertIds.current.values().next().value;
-        if (firstKey) seenAlertIds.current.delete(firstKey);
-      }
+        setLastAlert(alert);
 
-      setLastAlert(alert);
+        // Add to toasts (capped at max 3 visible toasts)
+        setToasts((prev) => [alert, ...prev.slice(0, 2)]);
 
-      // Add to toasts (capped at max 3 visible toasts)
-      setToasts((prev) => [alert, ...prev.slice(0, 2)]);
+        // 3. Targeted TanStack Query cache invalidation (NO full cache wipe)
+        queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
+        if (alert.classified_event_id) {
+          queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(alert.classified_event_id) });
+        }
+      });
 
-      // 3. Targeted TanStack Query cache invalidation (NO full cache wipe)
-      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
-      if (alert.classified_event_id) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(alert.classified_event_id) });
-      }
-    });
+      newSocket.connect();
+    };
 
-    newSocket.connect();
+    initSocket();
 
     return () => {
-      newSocket.off(REALTIME_EVENTS.ALERT_CREATED);
-      newSocket.disconnect();
+      isMounted = false;
+      if (localSocket) {
+        localSocket.off(REALTIME_EVENTS.ALERT_CREATED);
+        localSocket.disconnect();
+      }
       setSocket(null);
       setConnectionStatus("disconnected");
     };

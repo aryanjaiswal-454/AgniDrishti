@@ -22,10 +22,11 @@ export function getSocketEndpoint(): string {
 /**
  * Create a new Socket.io client instance configured for cookie-based session authentication.
  */
-export function createSocketClient(): Socket {
+export function createSocketClient(token?: string): Socket {
   const endpoint = getSocketEndpoint();
 
   return io(endpoint, {
+    auth: token ? { token } : undefined,
     withCredentials: true,
     autoConnect: false,
     transports: ["websocket", "polling"],

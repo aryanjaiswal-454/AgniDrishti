@@ -9,6 +9,8 @@ import { pool, withTransaction } from "./index";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "migrations");
 
+import { seedIfEmpty } from "./seedIfEmpty";
+
 async function runMigrations() {
   console.log("🚀 Starting AgniDrishti Database Migration...");
   console.log(`📁 Scanning migrations in: ${MIGRATIONS_DIR}`);
@@ -67,6 +69,9 @@ async function runMigrations() {
     }
 
     console.log(`\n🎉 Migration complete! ${count} new migration(s) applied successfully.`);
+
+    // 5. Seed initial data if the database is completely empty
+    await seedIfEmpty();
   } catch (error: any) {
     console.error("\n❌ Migration failed:");
     console.error(error.message);

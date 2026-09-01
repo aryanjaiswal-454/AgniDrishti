@@ -1,16 +1,13 @@
 import React from "react";
 import { Card, Badge, Button } from "../../components/ui";
-import { useIngestionStatus, useTriggerFirms, useTriggerOsm } from "../../hooks/useIngestion";
+import { useIngestionStatus } from "../../hooks/useIngestion";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { Database, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const IngestionStatusPanel: React.FC = () => {
   const { user } = useCurrentUser();
   const { data: statusRes, isLoading, error, refetch, isFetching } = useIngestionStatus();
-  const firmsMutation = useTriggerFirms();
-  const osmMutation = useTriggerOsm();
 
-  const isAdmin = user?.role === "admin";
   const status = statusRes?.data;
 
   return (
@@ -54,29 +51,9 @@ export const IngestionStatusPanel: React.FC = () => {
           </Badge>
         </div>
 
-        {/* Admin Quick Sync Controls */}
-        {isAdmin && (
-          <div className="pt-1 flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex-1 text-[11px]"
-              isLoading={firmsMutation.isPending}
-              onClick={() => firmsMutation.mutate(true)}
-            >
-              Sync FIRMS NRT
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex-1 text-[11px]"
-              isLoading={osmMutation.isPending}
-              onClick={() => osmMutation.mutate(true)}
-            >
-              Sync OSM
-            </Button>
-          </div>
-        )}
+        {/*
+          Admin Quick Sync Controls removed as per request.
+        */}
       </div>
     </Card>
   );
