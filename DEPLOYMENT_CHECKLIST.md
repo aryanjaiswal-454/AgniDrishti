@@ -39,8 +39,11 @@ DB_IGNORE_SSL=true
 
 ### **Service 1: Web (Frontend)**
 
-Build command: `npm ci && npm run build -w @agnidrishti/web`
-Start command: `nginx -g "daemon off;"`
+**Render Configuration**:
+- **Root Directory**: `Development` (← MUST set this in Render)
+- **Environment**: Static Site
+- **Build Command**: `npm ci && npm run build -w @agnidrishti/web`
+- **Publish Directory**: `apps/web/dist`
 
 **Environment Variables**:
 ```bash
@@ -110,8 +113,12 @@ SMTP_PASS=jojk hhvu rtov rmay
 
 ### **Service 3: Classifier (ML Model)**
 
-Build command: `pip install -r apps/classifier/requirements.txt`
-Start command: `uvicorn apps.classifier.main:app --host 0.0.0.0 --port 8000`
+**Render Configuration (CRITICAL)**:
+- **Root Directory**: `Development` (← MUST set this in Render, otherwise build will fail looking for `apps/`)
+- **Build Command**: `pip install -r apps/classifier/requirements.txt`
+- **Start Command**: `uvicorn apps.classifier.main:app --host 0.0.0.0 --port $PORT`
+- **Dockerfile Path**: `apps/classifier/Dockerfile`
+- **Docker Build Context**: `.` (relative to root dir)
 
 **Environment Variables**:
 ```bash
