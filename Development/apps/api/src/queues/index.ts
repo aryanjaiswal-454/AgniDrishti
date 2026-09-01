@@ -29,6 +29,21 @@ export const classificationQueue = new Queue(config.queues.classification, queue
  */
 export async function setupSchedulers(): Promise<void> {
   try {
+    // 0. Immediate invocation on startup to guarantee data is present!
+    await firmsQueue.add(
+      "immediate-firms-fetch",
+      { source: "startup" },
+      { removeOnComplete: true, jobId: `immediate-firms-${Date.now()}` }
+    );
+    logger.info("Queued IMMEDIATE FIRMS fetch on worker startup.");
+
+    await osmQueue.add(
+      "immediate-osm-sync",
+      { source: "startup" },
+      { removeOnComplete: true, jobId: `immediate-osm-startup-${Date.now()}` }
+    );
+    logger.info("Queued IMMEDIATE OSM facility sync on worker startup.");
+
     // 1. FIRMS repeatable job (e.g., every 30 minutes)
     await firmsQueue.add(
       "scheduled-firms-fetch",
