@@ -131,14 +131,14 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
 
   if (isLoading && thermalMarkers.length === 0 && facilityMarkers.length === 0) {
     return (
-      <div className={`relative w-full ${minHeight} rounded-xl overflow-hidden border border-border-subtle bg-surface-1 ${className}`}>
+      <div className={`relative w-full z-10 ${minHeight} rounded-xl overflow-hidden border border-border-subtle bg-surface-1 ${className}`}>
         <Skeleton className="w-full h-full" />
       </div>
     );
   }
 
   return (
-    <div className={`relative w-full ${minHeight} rounded-xl overflow-hidden border border-border-subtle bg-surface-1 shadow-sm ${className}`}>
+    <div className={`relative w-full z-10 ${minHeight} rounded-xl overflow-hidden border border-border-subtle bg-surface-1 shadow-sm ${className}`}>
       {/* Tactical Map Layer Controls */}
       <MapLayerControls
         layerVisibility={layerVisibility}

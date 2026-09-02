@@ -163,21 +163,21 @@ export const TopBar: React.FC<TopBarProps> = ({
                       onNavigate("/alerts");
                     }}
                     className={`p-2.5 rounded-lg bg-surface border hover:border-border-normal cursor-pointer transition-colors ${
-                      alert.severity === "high" || alert.severity === "critical"
+                      alert.severity === "high" 
                         ? "border-status-critical/30 hover:border-status-critical/60"
                         : "border-border-subtle"
                     }`}
                   >
                     <div className="flex items-center justify-between text-[11px] font-mono mb-1">
                       <span className={
-                        alert.severity === "high" || alert.severity === "critical" 
+                        alert.severity === "high"  
                           ? "text-status-critical font-semibold" 
                           : "text-brand-amber font-semibold"
                       }>
                         {alert.event?.sub_class?.replace(/_/g, " ").toUpperCase() || "NEW ALERT"}
                       </span>
                       <span className="text-text-muted">
-                        {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(alert.sent_at)}
                       </span>
                     </div>
                     <p className="text-xs text-text-secondary">

@@ -64,6 +64,7 @@ export interface DashboardSummary {
     is_anomalous: boolean;
     created_at: string;
   }>;
+  pipeline_metadata?: { version: string; strategy: string; anomaly_threshold: string; };
 }
 
 /**
