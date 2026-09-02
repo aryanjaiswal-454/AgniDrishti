@@ -116,3 +116,33 @@ Even as new alerts successfully trigger WebSocket events and arrive in the Recen
 
 **Concrete Solution**:
 Integrated the `useAlerts({ limit: 4, status: 'new' })` TanStack hook into `TopBar.tsx`. Mapped the resolved data array dynamically to the dropdown menu utilizing `date-fns` for time offsets, restoring real-time visibility to the shell.
+
+## 8. WebSocket Disconnection Due to Asymmetric Token Algorithm (Critical)
+**Title**: Socket.io Rejects Firebase ID Tokens Due to Algorithm Confusion Prevention
+**Severity**: Critical
+**File**: `Development/apps/api/src/realtime/socket.ts` and `Development/apps/api/src/utils/jwt.ts`
+
+**Root Cause Analysis**:
+The Socket.io handshake authentication logic uses local `jsonwebtoken.verify(token, config.jwt.secret)` expecting a token signed with the `HS256` symmetric algorithm. However, standard user authentication on the frontend utilizes Firebase Auth, which generates ID Tokens signed asymmetrically by Google using the `RS256` algorithm. When `jwt.verify` encounters a valid Firebase token, it immediately aborts to prevent algorithm-confusion attacks, throwing the `invalid algorithm` error observed in production logs.
+
+**Failure Scenario / System Effect**:
+This directly causes the real-time data failure on the live URL. When clients in production connect, their Socket.io connections are forcefully rejected. The backend successfully fetches data and creates alerts in the database, but since no sockets are authenticated or connected, the `emitAlertCreated()` broadcast drops into the void. Therefore, the UI remains perfectly static on production, whereas your localhost (if using mock tokens or bypassing Firebase) appeared to work.
+
+**Concrete Solution**:
+Refactored `socket.ts` to utilize `firebaseAuth.verifyIdToken(token)` exactly like the HTTP Express routes (`auth.ts`), resolving the asymmetric cryptography conflict. Integrated local PostgreSQL user fetching/auto-creation immediately after Firebase token verification to strictly build the correct `JWTPayload` for Socket state.
+
+---
+
+## 9. Third-Party Worker Starvation: Overpass API Timeout (High)
+**Title**: Massive National Bounding Box Starves OSM Worker Queue
+**Severity**: High
+**File**: `Development/apps/api/src/ingestion/osm/client.ts`
+
+**Root Cause Analysis**:
+The OpenStreetMap Overpass client performs a query requesting nearly every industrial structure across the entire Indian subcontinent (`6.5,68.0,37.5,97.5`) simultaneously (`[out:json][timeout:60]`). The public `overpass-api.de` limits immense spatial queries, resulting in 504 Gateway Timeouts and `ECONNREFUSED` connection blocks.
+
+**Failure Scenario / System Effect**:
+Because the `OsmOverpassClient` forcefully threw fatal exceptions when all mirrors failed, the BullMQ `osm-sync-queue` job crashed and automatically retried infinitely. This endless cycle starved the backend resources and filled production server logs with Overpass connectivity errors, preventing smooth worker operation.
+
+**Concrete Solution**:
+Modified `fetchIndustrialFacilities()` to catch the final fatal error explicitly and return an empty array gracefully `return []`. This permits the ingestion worker to successfully finish its queue cycle smoothly without destroying the server loop, avoiding massive log spam and worker starvation.

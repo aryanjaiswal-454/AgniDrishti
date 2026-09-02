@@ -112,7 +112,8 @@ out center tags;
     }
 
     logger.error(`All Overpass API endpoints failed. Last error: ${lastError?.message}`);
-    throw lastError || new Error("Failed to fetch from Overpass API after all retries");
+    logger.warn("Gracefully returning empty array to prevent worker starvation on Overpass timeouts");
+    return [];
   }
 }
 
