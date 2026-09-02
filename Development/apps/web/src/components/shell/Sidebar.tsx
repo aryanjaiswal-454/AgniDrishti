@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       initial={false}
       animate={{ width: isCollapsed ? 72 : 240 }}
       transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
-      className="hidden lg:flex flex-col justify-between bg-surface border-r border-border-subtle shrink-0 select-none z-20 h-full"
+      className="hidden lg:flex flex-col justify-between bg-surface border-r border-border-subtle shrink-0 select-none z-[2000] h-full"
     >
       {/* Top Nav Items */}
       <div className="p-3 space-y-5 overflow-y-auto">

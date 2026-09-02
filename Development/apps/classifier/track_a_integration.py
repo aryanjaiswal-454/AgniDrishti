@@ -141,7 +141,7 @@ def prepare_track_a_features(hotspot: Dict[str, Any]) -> Dict[str, Any]:
     # 4. Neighborhood Count (Fallback to 1 for live single inference,
     # since we don't have the historic batch to compare against easily
     # without a hit to Postgres which belongs to backend, not classifier)
-    neighborhood_count = 1
+    neighborhood_count = hotspot.get("neighborhood_count") if hotspot.get("neighborhood_count") is not None else 1
 
     return {
         "hotspot_id": hotspot.get("hotspot_id"),

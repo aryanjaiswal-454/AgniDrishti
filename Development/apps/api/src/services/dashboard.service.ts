@@ -27,6 +27,11 @@ export interface DashboardSummary {
     is_anomalous: boolean;
     created_at: string;
   }>;
+  pipeline_metadata: {
+    version: string;
+    strategy: string;
+    anomaly_threshold: string;
+  };
 }
 
 export class DashboardService {
@@ -132,6 +137,11 @@ export class DashboardService {
         is_anomalous: row.is_anomalous,
         created_at: row.created_at,
       })),
+      pipeline_metadata: {
+        version: process.env.CLASSIFIER_VERSION || "v1.1.0-live-dynamic", // Upgraded version
+        strategy: process.env.CLASSIFIER_STRATEGY || "Rules + PostGIS Spatial (Dynamic)", // Stating dynamic PostGIS spatial
+        anomaly_threshold: process.env.CLASSIFIER_ANOMALY_THRESHOLD || "+3.0σ FRP Exceedance (Rolling 90d)" // Clarifying 90d rolling
+      }
     };
   }
 }

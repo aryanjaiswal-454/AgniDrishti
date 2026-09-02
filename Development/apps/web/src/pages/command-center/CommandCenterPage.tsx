@@ -161,6 +161,7 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
               anomalousCount={summary?.metrics?.anomalous_events_count || 0}
               totalCount={summary?.metrics?.total_classified_events || events.length}
               isLoading={isSummaryLoading}
+              metadata={summary?.pipeline_metadata}
             />
           </div>
 
