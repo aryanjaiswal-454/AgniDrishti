@@ -101,8 +101,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-brand-orange/15 border border-brand-orange/30 text-brand-orange">
-                    <Flame className="w-4 h-4" />
+                  <div className="p-1 rounded-lg bg-surface-2 border border-border-subtle">
+                    <img src="/logo.png" alt="AgniDrishti Logo" className="w-5 h-5 object-contain" />
                   </div>
                   <div>
                     <span className="font-display font-bold text-base text-text-primary block">

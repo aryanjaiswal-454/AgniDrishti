@@ -34,8 +34,8 @@ export const LandingNav: React.FC<LandingNavProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-3 select-none">
-          <div className="p-2 rounded-xl bg-brand-orange/15 border border-brand-orange/30 text-brand-orange shadow-brand-glow">
-            <Flame className="w-5 h-5" />
+          <div className="p-1 rounded-xl bg-surface-2 border border-border-subtle group-hover:border-brand-orange/60 transition-colors shadow-brand-glow">
+            <img src="/logo.png" alt="AgniDrishti Logo" className="w-6 h-6 object-contain" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">

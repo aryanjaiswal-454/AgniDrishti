@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { UserRole } from "@agnidrishti/shared-types";
-import { Flame, Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import { Badge, Button, Card } from "../ui";
 
 export interface ProtectedRouteProps {
@@ -14,8 +14,8 @@ export const AuthLoadingScreen: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-void bg-tactical-grid flex flex-col items-center justify-center p-6 text-center select-none">
       <div className="relative mb-6">
-        <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-brand-orange/40 flex items-center justify-center text-brand-orange shadow-brand-glow">
-          <Flame className="w-8 h-8 animate-pulse" />
+        <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border-subtle flex items-center justify-center shadow-brand-glow">
+          <img src="/logo.png" alt="AgniDrishti Logo" className="w-8 h-8 object-contain" />
         </div>
         <div className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-surface-3 border border-border-normal text-intelligence-cyan">
           <Loader2 className="w-4 h-4 animate-spin" />

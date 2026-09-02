@@ -53,8 +53,8 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
 
       <motion.div initial="hidden" animate="visible" variants={staggerContainerVariants} className="w-full max-w-md relative z-10 space-y-6">
         <motion.div variants={fadeInVariants} className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-surface-2 border border-brand-orange/40 text-brand-orange shadow-brand-glow mb-2">
-            <Flame className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-surface-2 border border-border-subtle shadow-brand-glow mb-2">
+            <img src="/logo.png" alt="AgniDrishti Logo" className="w-8 h-8 object-contain" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-text-primary">
             Reset Password

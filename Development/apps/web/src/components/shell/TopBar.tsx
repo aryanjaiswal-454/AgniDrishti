@@ -77,8 +77,8 @@ export const TopBar: React.FC<TopBarProps> = ({
           onClick={() => onNavigate("/command-center")}
           className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <div className="p-1.5 rounded-lg bg-brand-orange/15 border border-brand-orange/30 text-brand-orange group-hover:border-brand-orange/60 transition-colors">
-            <Flame className="w-5 h-5" />
+          <div className="p-1 rounded-lg bg-surface-2 border border-border-subtle group-hover:border-brand-orange/60 transition-colors">
+            <img src="/logo.png" alt="AgniDrishti Logo" className="w-6 h-6 object-contain" />
           </div>
           <div className="hidden sm:flex flex-col">
             <div className="flex items-center gap-1.5">
