@@ -1,87 +1,96 @@
 """
 Track B Integration Module
 
-Loads pre-computed Track B results from the JSONL output file.
-Track B is batch-processed, so we load all results into memory and
-perform lookups by hotspot_id.
+Dynamically looks up facilities via Postgres and computes Anomaly Z-Score.
 """
 
-import json
-from pathlib import Path
-from typing import Dict, Any, Optional
+import os
 import logging
+from typing import Dict, Any, Optional
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import math
 
 logger = logging.getLogger(__name__)
 
-# Track B data cache
-_track_b_cache: Optional[Dict[str, Dict[str, Any]]] = None
+DB_URL = os.getenv("DATABASE_URL", "postgresql://agnidrishti:agnidrishti_dev@localhost:5432/agnidrishti")
 
-
-def load_track_b_results(jsonl_path: Path) -> Dict[str, Dict[str, Any]]:
-    """
-    Load Track B pre-computed results from JSONL file.
-
-    Returns a dictionary mapping hotspot_id -> classification result.
-    """
-
-    results = {}
-
-    if not jsonl_path.exists():
-        logger.warning(f"Track B results file not found: {jsonl_path}")
-        return results
-
+def get_track_b_result(hotspot_id: str, jsonl_path=None) -> Optional[Dict[str, Any]]:
     try:
-        with open(jsonl_path, 'r', encoding='utf-8') as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
-                    continue
-
-                try:
-                    record = json.loads(line)
-                    hotspot_id = record.get("hotspot_id")
-
-                    if not hotspot_id:
-                        logger.warning(f"Line {line_num}: missing hotspot_id")
-                        continue
-
-                    results[hotspot_id] = record
-
-                except json.JSONDecodeError as e:
-                    logger.error(f"Line {line_num}: invalid JSON: {e}")
-                    continue
-
-        logger.info(f"✅ Loaded {len(results)} Track B results from {jsonl_path}")
-
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get the hotspot
+        cur.execute("SELECT frp, geom FROM hotspots WHERE id = %s", (hotspot_id,))
+        hotspot_row = cur.fetchone()
+        if not hotspot_row:
+            cur.close()
+            conn.close()
+            return None
+            
+        frp = float(hotspot_row['frp']) if hotspot_row['frp'] is not None else 0.0
+        geom = hotspot_row['geom']
+        
+        # 1. Facility match within 5km
+        cur.execute("""
+            SELECT id, name, facility_type, ST_Distance(geom::geography, %s::geography) as dist
+            FROM osm_facilities
+            WHERE ST_DWithin(geom::geography, %s::geography, 5000)
+            ORDER BY dist ASC LIMIT 1
+        """, (geom, geom))
+        
+        facility = cur.fetchone()
+        
+        # 2. 90-day historical z-score for the same facility or area!
+        if facility:
+            cur.execute("""
+                SELECT frp
+                FROM hotspots 
+                WHERE ST_DWithin(geom::geography, %s::geography, 5000)
+                AND acq_date >= NOW() - INTERVAL '90 days'
+                AND id != %s
+            """, (geom, hotspot_id))
+            
+            history = cur.fetchall()
+            frps = [float(r['frp']) for r in history if r['frp'] is not None]
+            
+            recurrence_count = len(frps)
+            z_score = None
+            is_anomalous = False
+            
+            if recurrence_count > 0:
+                mean = sum(frps) / recurrence_count
+                variance = sum((x - mean) ** 2 for x in frps) / recurrence_count
+                std_dev = math.sqrt(variance) if variance > 0 else 0
+                
+                if std_dev > 0:
+                    z_score = (frp - mean) / std_dev
+                    is_anomalous = bool(z_score > 3.0)
+                elif frp > mean * 1.5:
+                    is_anomalous = True
+                    z_score = 3.0
+                    
+            sub_class = "industrial_fire" if is_anomalous else "gas_flare"
+            
+            result = {
+                "hotspot_id": hotspot_id,
+                "facility_id": facility['id'],
+                "distance_to_facility_m": float(facility['dist']),
+                "sub_class": sub_class,
+                "is_anomalous": is_anomalous,
+                "z_score_frp": z_score,
+                "recurrence_count_90d": recurrence_count,
+                "confidence_score": 0.95,
+                "model_version": "v1.0.0-trackB-live"
+            }
+        else:
+            # No facility match
+            result = None
+            
+        cur.close()
+        conn.close()
+        return result
+        
     except Exception as e:
-        logger.error(f"Failed to load Track B results: {e}")
-
-    return results
-
-
-def get_track_b_cache(jsonl_path: Path) -> Dict[str, Dict[str, Any]]:
-    """Get cached Track B results, loading if necessary."""
-    global _track_b_cache
-
-    if _track_b_cache is None:
-        _track_b_cache = load_track_b_results(jsonl_path)
-
-    return _track_b_cache
-
-
-def get_track_b_result(hotspot_id: str, jsonl_path: Path) -> Optional[Dict[str, Any]]:
-    """
-    Get Track B classification result for a specific hotspot_id.
-
-    Returns the Track B result dict, or None if not found.
-    """
-
-    cache = get_track_b_cache(jsonl_path)
-    result = cache.get(hotspot_id)
-
-    if result:
-        logger.debug(f"Track B result found for {hotspot_id}")
-    else:
-        logger.debug(f"No Track B result for {hotspot_id}")
-
-    return result
+        logger.error(f"Track B live computation failed: {e}", exc_info=True)
+        return None

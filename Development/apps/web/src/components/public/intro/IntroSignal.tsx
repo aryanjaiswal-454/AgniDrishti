@@ -1,5 +1,5 @@
 import React from "react";
-import { Flame, Radio } from "lucide-react";
+import { Radio } from "lucide-react";
 
 export const IntroSignal: React.FC = () => {
   return (
@@ -11,8 +11,8 @@ export const IntroSignal: React.FC = () => {
       <div id="intro-signal-ring-inner" className="absolute w-24 h-24 rounded-full border border-brand-orange/40 opacity-0 scale-50" />
       
       {/* Thermal Core Node */}
-      <div id="intro-signal-core" className="relative p-3 rounded-2xl bg-surface-2/90 border border-brand-orange/60 text-brand-orange shadow-brand-glow opacity-0 scale-50">
-        <Flame className="w-6 h-6 animate-pulse" />
+      <div id="intro-signal-core" className="relative p-3 rounded-2xl bg-surface-2/90 border border-brand-orange/60 shadow-brand-glow opacity-0 scale-50">
+        <img src="/logo.png" alt="AgniDrishti Logo" className="w-6 h-6 object-contain" />
       </div>
 
       {/* Coordinate & Simulation Label HUD */}

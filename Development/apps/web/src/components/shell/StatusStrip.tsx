@@ -26,7 +26,7 @@ export const StatusStrip: React.FC = () => {
   }, []);
 
   return (
-    <footer className="w-full bg-surface border-t border-border-subtle px-4 py-1.5 flex flex-wrap items-center justify-between text-[11px] font-mono text-text-muted select-none gap-2 z-20">
+    <footer className="w-full bg-surface border-t border-border-subtle px-4 py-1.5 flex flex-wrap items-center justify-between text-[11px] font-mono text-text-muted select-none gap-2 z-[2000]">
       {/* Left: Pipeline Telemetry */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5">

@@ -1,5 +1,4 @@
 import React from "react";
-import { Flame } from "lucide-react";
 import { Badge } from "../../components/ui";
 
 export interface LandingFooterProps {
@@ -16,8 +15,8 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Brand Meta */}
         <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-lg bg-brand-orange/15 border border-brand-orange/30 text-brand-orange">
-            <Flame className="w-4 h-4" />
+          <div className="p-1.5 rounded-lg bg-surface-2 border border-border-subtle">
+            <img src="/logo.png" alt="AgniDrishti Logo" className="w-4 h-4 object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">

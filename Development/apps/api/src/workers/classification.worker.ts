@@ -4,6 +4,7 @@ import config from "../config";
 import redisConnection from "../queues/connection";
 import { withTransaction, query } from "../db";
 import logger from "../utils/logger";
+import { AlertService } from "../services/alert.service";
 
 interface ClassifyHotspotJob {
   hotspot_id: string;
@@ -37,6 +38,14 @@ export function createClassificationWorker(): Worker {
       const CLASSIFIER_URL = process.env.CLASSIFIER_URL || "http://localhost:8000";
 
       // The FastAPI takes a batch, we send a batch of 1
+      
+      // D7: Inject Track A geospatial density dynamically
+      const countRes = await client.query(
+        "SELECT COUNT(*) as count FROM hotspots WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 5000)",
+        [dbHotspot.longitude, dbHotspot.latitude]
+      );
+      const neighborhoodCount = parseInt(countRes.rows[0].count) || 1;
+
       const payload = {
         hotspots: [
           {
@@ -49,7 +58,8 @@ export function createClassificationWorker(): Worker {
             acquisition_time: dbHotspot.acq_time,
             instrument: dbHotspot.instrument,
             daynight: dbHotspot.daynight,
-            confidence: dbHotspot.confidence
+            confidence: dbHotspot.confidence,
+            neighborhood_count: neighborhoodCount
           }
         ]
       };
@@ -105,11 +115,7 @@ export function createClassificationWorker(): Worker {
           // D7 logic: Create real-time alerts if event is an anomalous industrial/natural fire
           if (result.is_anomalous || result.sub_class === 'industrial_fire') {
               const severity = result.sub_class === 'industrial_fire' ? 'high' : 'medium';
-              await client.query(
-                `INSERT INTO alerts (classified_event_id, severity, status) VALUES ($1, $2, 'new')`,
-                [eventId, severity]
-              );
-              // In a real app we'd trigger a socket.io event here, but alert.service does that via polling or triggers
+              await AlertService.createAlert({ classified_event_id: eventId, severity: severity as any, status: 'new' });
           }
         });
 

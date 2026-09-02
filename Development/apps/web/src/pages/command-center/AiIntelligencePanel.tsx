@@ -12,6 +12,11 @@ export interface AiIntelligencePanelProps {
   anomalousCount: number;
   totalCount: number;
   isLoading: boolean;
+  metadata?: {
+    version: string;
+    strategy: string;
+    anomaly_threshold: string;
+  };
 }
 
 export const AiIntelligencePanel: React.FC<AiIntelligencePanelProps> = ({
@@ -19,6 +24,7 @@ export const AiIntelligencePanel: React.FC<AiIntelligencePanelProps> = ({
   anomalousCount,
   totalCount,
   isLoading,
+  metadata,
 }) => {
   return (
     <Card className="p-4 sm:p-5 space-y-3.5">
@@ -30,7 +36,7 @@ export const AiIntelligencePanel: React.FC<AiIntelligencePanelProps> = ({
           </h4>
         </div>
         <Badge variant="cyan" size="sm">
-          v1.0.0-rules-ml-hybrid
+          {metadata?.version || "v1.0.0-rules-ml-hybrid"}
         </Badge>
       </div>
 
@@ -38,11 +44,11 @@ export const AiIntelligencePanel: React.FC<AiIntelligencePanelProps> = ({
         <div className="grid grid-cols-2 gap-2 text-[11px]">
           <div className="p-2.5 rounded bg-surface-2 border border-border-subtle">
             <span className="text-text-muted text-[10px] block uppercase">Classification Mode</span>
-            <span className="text-text-primary font-semibold mt-0.5 block">Rules + PostGIS Spatial</span>
+            <span className="text-text-primary font-semibold mt-0.5 block">{metadata?.strategy || "Rules + PostGIS Spatial"}</span>
           </div>
           <div className="p-2.5 rounded bg-surface-2 border border-border-subtle">
             <span className="text-text-muted text-[10px] block uppercase">Anomaly Threshold</span>
-            <span className="text-status-critical font-semibold mt-0.5 block">+3.0σ FRP Exceedance</span>
+            <span className="text-status-critical font-semibold mt-0.5 block">{metadata?.anomaly_threshold || "+3.0σ FRP Exceedance"}</span>
           </div>
         </div>
 

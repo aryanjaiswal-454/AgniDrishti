@@ -12,6 +12,17 @@ import {
 } from "lucide-react";
 import { Button, IconButton, Badge } from "../ui";
 import { useAuth } from "../../context/AuthContext";
+import { useAlerts } from "../../hooks/useAlerts";
+// Native time formatter fallback
+function formatDistanceToNow(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 
 export interface TopBarProps {
   onOpenMobileMenu: () => void;
@@ -28,6 +39,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const { data: alertsRes } = useAlerts({ limit: 4, status: 'new' });
+  const unreadAlerts = alertsRes?.data || [];
 
   // Compute initials from user name
   const initials = user?.name
@@ -46,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-surface/90 backdrop-blur-md border-b border-border-subtle px-4 py-2.5 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-[2000] w-full bg-surface/90 backdrop-blur-md border-b border-border-subtle px-4 py-2.5 flex items-center justify-between gap-4">
       {/* Left: Mobile Toggle & Brand Logo */}
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger Toggle */}
@@ -63,8 +77,8 @@ export const TopBar: React.FC<TopBarProps> = ({
           onClick={() => onNavigate("/command-center")}
           className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <div className="p-1.5 rounded-lg bg-brand-orange/15 border border-brand-orange/30 text-brand-orange group-hover:border-brand-orange/60 transition-colors">
-            <Flame className="w-5 h-5" />
+          <div className="p-1 rounded-lg bg-surface-2 border border-border-subtle group-hover:border-brand-orange/60 transition-colors">
+            <img src="/logo.png" alt="AgniDrishti Logo" className="w-6 h-6 object-contain" />
           </div>
           <div className="hidden sm:flex flex-col">
             <div className="flex items-center gap-1.5">
@@ -105,7 +119,9 @@ export const TopBar: React.FC<TopBarProps> = ({
             icon={
               <div className="relative">
                 <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-status-critical animate-pulse" />
+                {unreadAlerts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-status-critical animate-pulse" />
+                )}
               </div>
             }
             aria-label="Threat notifications"
@@ -118,51 +134,69 @@ export const TopBar: React.FC<TopBarProps> = ({
           />
 
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl bg-surface-2 border border-border-normal p-4 shadow-xl text-text-primary z-50 animate-in fade-in duration-150">
+            <div className="absolute right-0 mt-2 w-80 rounded-xl bg-surface-2 border border-border-normal p-4 shadow-xl text-text-primary z-[2010] animate-in fade-in duration-150">
               <div className="flex items-center justify-between pb-2 border-b border-border-subtle mb-3">
                 <span className="text-xs font-mono uppercase font-semibold text-text-primary">
-                  Threat Alerts (2)
+                  Threat Alerts ({unreadAlerts.length})
                 </span>
-                <Badge variant="critical" size="sm">
-                  Active
-                </Badge>
+                {unreadAlerts.length > 0 ? (
+                  <Badge variant="critical" size="sm">
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge variant="default" size="sm">
+                    None
+                  </Badge>
+                )}
               </div>
-              <div className="space-y-2.5">
-                <div
-                  onClick={() => {
+              <div className="space-y-2.5 overflow-y-auto max-h-[60vh]">
+                {unreadAlerts.length === 0 && (
+                  <div className="text-center p-4 text-xs text-text-muted font-mono">
+                    No active threat alerts
+                  </div>
+                )}
+                {unreadAlerts.map(alert => (
+                  <div
+                    key={alert.id}
+                    onClick={() => {
+                      setIsNotificationsOpen(false);
+                      onNavigate("/alerts");
+                    }}
+                    className={`p-2.5 rounded-lg bg-surface border hover:border-border-normal cursor-pointer transition-colors ${
+                      alert.severity === "high" 
+                        ? "border-status-critical/30 hover:border-status-critical/60"
+                        : "border-border-subtle"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-mono mb-1">
+                      <span className={
+                        alert.severity === "high"  
+                          ? "text-status-critical font-semibold" 
+                          : "text-brand-amber font-semibold"
+                      }>
+                        {alert.event?.sub_class?.replace(/_/g, " ").toUpperCase() || "NEW ALERT"}
+                      </span>
+                      <span className="text-text-muted">
+                        {formatDistanceToNow(alert.sent_at)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-secondary">
+                      {alert.event?.facility_name 
+                        ? `${alert.event.facility_name} detected above threshold.` 
+                        : `Event detected at ${alert.event?.frp || 0} MW FRP.`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-2 mt-2 border-t border-border-subtle text-center">
+                 <button className="text-[11px] font-mono text-intelligence-cyan hover:underline" onClick={() => {
                     setIsNotificationsOpen(false);
                     onNavigate("/alerts");
-                  }}
-                  className="p-2.5 rounded-lg bg-surface border border-status-critical/30 hover:border-status-critical/60 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center justify-between text-[11px] font-mono mb-1">
-                    <span className="text-status-critical font-semibold">Industrial Fire Flare</span>
-                    <span className="text-text-muted">12m ago</span>
-                  </div>
-                  <p className="text-xs text-text-secondary">
-                    Jamnagar Refinery (Gujarat) detected at 142.6 MW FRP.
-                  </p>
-                </div>
-                <div
-                  onClick={() => {
-                    setIsNotificationsOpen(false);
-                    onNavigate("/alerts");
-                  }}
-                  className="p-2.5 rounded-lg bg-surface border border-border-subtle hover:border-border-normal cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center justify-between text-[11px] font-mono mb-1">
-                    <span className="text-brand-amber font-semibold">Anomalous Spike</span>
-                    <span className="text-text-muted">45m ago</span>
-                  </div>
-                  <p className="text-xs text-text-secondary">
-                    Bokaro Steel Complex detected above 90d baseline.
-                  </p>
-                </div>
+                 }}>View all alerts</button>
               </div>
             </div>
           )}
         </div>
-
         {/* User Profile Menu with Real Authenticated Data */}
         <div className="relative">
           <button
@@ -188,7 +222,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-60 rounded-xl bg-surface-2 border border-border-normal p-2 shadow-xl text-text-primary z-50 animate-in fade-in duration-150 divide-y divide-border-subtle">
+            <div className="absolute right-0 mt-2 w-60 rounded-xl bg-surface-2 border border-border-normal p-2 shadow-xl text-text-primary z-[2010] animate-in fade-in duration-150 divide-y divide-border-subtle">
               <div className="p-2.5">
                 <p className="text-xs font-semibold text-text-primary truncate">
                   {user?.name || "Command User"}

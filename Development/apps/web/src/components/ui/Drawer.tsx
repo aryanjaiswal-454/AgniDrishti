@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { drawerVariants } from "../../design-system/motion";
 import { IconButton } from "./IconButton";
@@ -49,10 +50,11 @@ export const Drawer: React.FC<DrawerProps> = ({
     xl: "max-w-2xl",
   };
 
-  return (
+  const drawerContent = (
     <AnimatePresence>
+
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-[2010] overflow-hidden">
           {/* Backdrop */}
           <motion.div
             variants={drawerVariants.backdrop}
@@ -114,5 +116,8 @@ export const Drawer: React.FC<DrawerProps> = ({
       )}
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(drawerContent, document.body);
 };
 

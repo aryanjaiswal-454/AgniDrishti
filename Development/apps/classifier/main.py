@@ -66,6 +66,7 @@ class HotspotInput(BaseModel):
     instrument: str = Field(..., description="MODIS or VIIRS")
     daynight: str = Field(..., pattern="^[DN]$")
     confidence: Optional[str] = None
+    neighborhood_count: Optional[int] = None
 
 
 class ClassificationResult(BaseModel):

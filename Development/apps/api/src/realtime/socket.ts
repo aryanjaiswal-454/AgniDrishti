@@ -1,7 +1,10 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import config from "../config";
-import { verifyToken, JWTPayload } from "../utils/jwt";
+import { JWTPayload } from "../utils/jwt";
+import { firebaseAuth } from "../config/firebase";
+import { query } from "../db";
+import { User } from "@agnidrishti/shared-types";
 import logger from "../utils/logger";
 import { REALTIME_EVENTS, AlertCreatedPayload } from "./events";
 
@@ -66,20 +69,47 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   logger.info("[Socket.io] Real-time alert server initialized.");
 
   // Authentication Middleware for incoming socket connections
-  io.use((socket: Socket, next) => {
+  io.use(async (socket: Socket, next) => {
     try {
       const token = extractTokenFromHandshake(socket);
 
+      // In production/dev where auth might fail temporarily, we can make it optional 
+      // or strictly enforced. We will strictly enforce since it was originally doing that.
       if (!token) {
         logger.warn(`[Socket.io] Connection rejected for socket ${socket.id}: No authentication token provided.`);
         return next(new Error("Authentication required: Token missing or invalid."));
       }
 
-      const decoded = verifyToken(token);
-      (socket as AgniSocket).data.user = decoded;
+      const decoded = await firebaseAuth.verifyIdToken(token);
+      
+      const email = decoded.email;
+      if (!email) throw new Error("Token misses email");
+      
+      let res = await query<User>("SELECT id, name, email, role, created_at FROM users WHERE LOWER(email) = LOWER($1);", [email]);
+      let dbUser = res.rows[0];
+      
+      if (!dbUser) {
+          const name = decoded.name || email.split("@")[0] || "Firebase User";
+          const insertRes = await query<User>(
+            `INSERT INTO users (name, email, auth_provider)
+             VALUES ($1, $2, 'firebase')
+             RETURNING id, name, email, role, created_at;`,
+            [name, email]
+          );
+          dbUser = insertRes.rows[0];
+      }
+
+      const payload: JWTPayload = {
+          userId: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          role: dbUser.role as any
+      };
+
+      (socket as AgniSocket).data.user = payload;
 
       logger.info(
-        `[Socket.io] Authenticated client connected: user=${decoded.email}, role=${decoded.role}, socket=${socket.id}`
+        `[Socket.io] Authenticated client connected: user=${payload.email}, role=${payload.role}, socket=${socket.id}`
       );
       next();
     } catch (err: any) {

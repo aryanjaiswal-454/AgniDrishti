@@ -103,7 +103,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
       // Real-time alert listener
       newSocket.on(REALTIME_EVENTS.ALERT_CREATED, (alert: AlertCreatedPayload) => {
         // 1. Guard against non-high severity
-        if (alert.severity !== "high") return;
+        
 
         // 2. Guard against duplicate alert notifications
         if (seenAlertIds.current.has(alert.id)) return;
@@ -123,6 +123,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
         // 3. Targeted TanStack Query cache invalidation (NO full cache wipe)
         queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() });
         if (alert.classified_event_id) {
           queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(alert.classified_event_id) });
         }
