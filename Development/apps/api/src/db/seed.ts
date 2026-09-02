@@ -27,21 +27,19 @@ async function seedDatabase() {
       const analystPassHash = await bcrypt.hash("AnalystPassword123!", salt);
       const viewerPassHash = await bcrypt.hash("ViewerPassword123!", salt);
 
-      const userAdminRes = await client.query(
+      await client.query(
         `INSERT INTO users (name, email, password_hash, role)
          VALUES ($1, $2, $3, 'admin')
          RETURNING id;`,
         ["System Administrator", "admin@agnidrishti.local", adminPassHash]
       );
-      const adminId = userAdminRes.rows[0].id;
 
-      const userAnalystRes = await client.query(
+      await client.query(
         `INSERT INTO users (name, email, password_hash, role)
          VALUES ($1, $2, $3, 'analyst')
          RETURNING id;`,
         ["Duty Thermal Analyst", "analyst@agnidrishti.local", analystPassHash]
       );
-      const analystId = userAnalystRes.rows[0].id;
 
       await client.query(
         `INSERT INTO users (name, email, password_hash, role)
@@ -211,5 +209,17 @@ async function seedDatabase() {
       // ----------------------------------------------------------------------
       // 5. Seed Hotspots (FIRMS format)
       // HOTSPOTS, EVENTS, and ALERTS seeding removed to prevent static data pollution
-      console.log("
-✅ AgniDrishti Database seeded successfully!");undefined
+      console.log("✅ AgniDrishti Database seeded successfully!");
+    }); // end withTransaction
+  } catch (error) {
+    console.error("❌ Database seeding failed:", error);
+    throw error;
+  } finally {
+    await pool.end();
+  }
+}
+
+seedDatabase().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
