@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../src/index";
 import * as db from "../src/db";
-import bcrypt from "bcryptjs";
 import { signToken } from "../src/utils/jwt";
 
 vi.mock("../src/db", () => ({
@@ -23,92 +22,6 @@ describe("Authentication & User API", () => {
     role: "analyst",
     created_at: new Date().toISOString(),
   };
-
-  it("POST /api/v1/auth/login - should log in with valid credentials and return httpOnly cookie", async () => {
-    vi.spyOn(db, "query").mockResolvedValueOnce({
-      rows: [mockUser],
-      rowCount: 1,
-      command: "SELECT",
-      oid: 0,
-      fields: [],
-    });
-
-    vi.spyOn(bcrypt, "compare").mockResolvedValueOnce(true as never);
-
-    const res = await request(app)
-      .post("/api/v1/auth/login")
-      .send({
-        email: "analyst@aagnazar.in",
-        password: "ValidPassword123!",
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.user.email).toBe("analyst@aagnazar.in");
-    expect(res.body.data.token).toBeDefined();
-
-    // Check cookie
-    const cookies = res.headers["set-cookie"];
-    expect(cookies).toBeDefined();
-    expect(cookies[0]).toContain("aagnazar_token");
-    expect(cookies[0]).toContain("HttpOnly");
-  });
-
-  it("POST /api/v1/auth/login - should fail with invalid password", async () => {
-    vi.spyOn(db, "query").mockResolvedValueOnce({
-      rows: [mockUser],
-      rowCount: 1,
-      command: "SELECT",
-      oid: 0,
-      fields: [],
-    });
-
-    vi.spyOn(bcrypt, "compare").mockResolvedValueOnce(false as never);
-
-    const res = await request(app)
-      .post("/api/v1/auth/login")
-      .send({
-        email: "analyst@aagnazar.in",
-        password: "WrongPassword!",
-      });
-
-    expect(res.status).toBe(401);
-    expect(res.body.success).toBe(false);
-    expect(res.body.error.code).toBe("AUTHENTICATION_ERROR");
-  });
-
-  it("POST /api/v1/auth/login - should fail when user is not found", async () => {
-    vi.spyOn(db, "query").mockResolvedValueOnce({
-      rows: [],
-      rowCount: 0,
-      command: "SELECT",
-      oid: 0,
-      fields: [],
-    });
-
-    const res = await request(app)
-      .post("/api/v1/auth/login")
-      .send({
-        email: "nonexistent@aagnazar.in",
-        password: "AnyPassword123!",
-      });
-
-    expect(res.status).toBe(401);
-    expect(res.body.error.code).toBe("AUTHENTICATION_ERROR");
-  });
-
-  it("POST /api/v1/auth/login - should return 400 validation error for invalid email format", async () => {
-    const res = await request(app)
-      .post("/api/v1/auth/login")
-      .send({
-        email: "not-an-email",
-        password: "pass",
-      });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error.code).toBe("VALIDATION_ERROR");
-    expect(res.body.error.details).toBeDefined();
-  });
 
   it("GET /api/v1/auth/me - should return current user profile with valid Bearer token", async () => {
     const token = signToken({

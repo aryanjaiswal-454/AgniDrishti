@@ -102,12 +102,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-mono tracking-wider text-text-muted uppercase">Password</span>
+                  <label htmlFor="password" className="text-[10px] font-mono tracking-wider text-text-muted uppercase">Password</label>
                   <button type="button" onClick={() => handleNavigate("/forgot-password")} className="text-[10px] text-brand-orange hover:text-brand-amber font-mono underline outline-none">
                     Forgot Password?
                   </button>
                 </div>
                 <Input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••••••"
                   autoComplete="current-password"
@@ -115,7 +116,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   onChange={(e) => { setPassword(e.target.value); setFormError(null); }}
                   leftIcon={<Lock className="w-4 h-4" />}
                   rightIcon={
-                    <button type="button" tabIndex={-1} onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none">
+                    <button type="button" tabIndex={-1} aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-text-primary transition-colors focus:outline-none">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   }

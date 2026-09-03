@@ -51,7 +51,10 @@ export const config = {
     cronSchedule: process.env.OSM_SYNC_INTERVAL || "0 3 * * 0", // weekly Sunday 3 AM
     // Default bounding box for India in Overpass format: (south,west,north,east)
     areaBbox: process.env.OSM_AREA_BBOX || "6.5,68.0,37.5,97.5",
-    timeoutMs: 60000,
+    chunkRows: parseInt(process.env.OSM_CHUNK_ROWS || "2", 10),
+    chunkCols: parseInt(process.env.OSM_CHUNK_COLS || "3", 10),
+    requestTimeoutMs: parseInt(process.env.OSM_REQUEST_TIMEOUT_MS || "60000", 10),
+    chunkDelayMs: parseInt(process.env.OSM_CHUNK_DELAY_MS || "2000", 10),
   },
 
   queues: {

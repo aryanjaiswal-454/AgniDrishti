@@ -59,13 +59,33 @@ export async function seedIfEmpty() {
         { osm_id: "osm_way_20987654", name: "Mathura Oil Refinery (IOCL)", facility_type: "refinery", lat: 27.4239, lon: 77.6972, state: "Uttar Pradesh", district: "Mathura" },
         { osm_id: "osm_way_30456789", name: "Vindhyachal Super Thermal Power Station (NTPC)", facility_type: "power_plant", lat: 24.0984, lon: 82.6644, state: "Madhya Pradesh", district: "Singrauli" },
         { osm_id: "osm_way_40112233", name: "Bokaro Steel Plant (SAIL)", facility_type: "steel", lat: 23.6693, lon: 86.1511, state: "Jharkhand", district: "Bokaro" },
+        { osm_id: "osm_way_50998877", name: "Bhilai Steel Plant (SAIL)", facility_type: "steel", lat: 21.1938, lon: 81.3838, state: "Chhattisgarh", district: "Durg" },
+        { osm_id: "osm_way_60554433", name: "Dahej LNG Terminal (Petronet LNG)", facility_type: "lng_terminal", lat: 21.7032, lon: 72.5447, state: "Gujarat", district: "Bharuch" },
+        { osm_id: "osm_way_70223344", name: "Jharia Open Cast Coal Mining Area", facility_type: "mining", lat: 23.7439, lon: 86.4172, state: "Jharkhand", district: "Dhanbad" },
+        { osm_id: "osm_way_80667788", name: "Haldia Petrochemicals Complex", facility_type: "petrochemical", lat: 22.0624, lon: 88.0863, state: "West Bengal", district: "Purba Medinipur" },
+        { osm_id: "bootstrap_facility_90112233", name: "Bina Refinery", facility_type: "refinery", lat: 24.1848, lon: 78.1551, state: "Madhya Pradesh", district: "Sagar" },
+        { osm_id: "bootstrap_facility_10022334", name: "Panipat Refinery and Petrochemical Complex", facility_type: "refinery", lat: 29.3906, lon: 76.9694, state: "Haryana", district: "Panipat" },
+        { osm_id: "bootstrap_facility_11033445", name: "Kochi Refinery", facility_type: "refinery", lat: 9.9675, lon: 76.2731, state: "Kerala", district: "Ernakulam" },
+        { osm_id: "bootstrap_facility_12044556", name: "Paradip Refinery", facility_type: "refinery", lat: 20.3049, lon: 86.6665, state: "Odisha", district: "Jagatsinghpur" },
+        { osm_id: "bootstrap_facility_13055667", name: "Talcher Thermal Power Station", facility_type: "power_plant", lat: 20.9509, lon: 85.2146, state: "Odisha", district: "Angul" },
+        { osm_id: "bootstrap_facility_14066778", name: "Korba Super Thermal Power Plant", facility_type: "power_plant", lat: 22.3458, lon: 82.6956, state: "Chhattisgarh", district: "Korba" },
+        { osm_id: "bootstrap_facility_15077889", name: "Ramagundam Super Thermal Power Station", facility_type: "power_plant", lat: 18.7614, lon: 79.4666, state: "Telangana", district: "Peddapalli" },
+        { osm_id: "bootstrap_facility_16088990", name: "Rourkela Steel Plant", facility_type: "steel", lat: 22.2604, lon: 84.8545, state: "Odisha", district: "Sundargarh" },
+        { osm_id: "bootstrap_facility_17099001", name: "Visakhapatnam Steel Plant", facility_type: "steel", lat: 17.6816, lon: 83.2098, state: "Andhra Pradesh", district: "Visakhapatnam" },
+        { osm_id: "bootstrap_facility_18100112", name: "Kalinganagar Steel Complex", facility_type: "steel", lat: 20.9665, lon: 86.1027, state: "Odisha", district: "Jajpur" },
+        { osm_id: "bootstrap_facility_19111223", name: "Singrauli Coalfield", facility_type: "mining", lat: 24.1112, lon: 82.4453, state: "Madhya Pradesh", district: "Singrauli" },
+        { osm_id: "bootstrap_facility_20122334", name: "Neyveli Lignite Mine", facility_type: "mining", lat: 11.5469, lon: 79.4861, state: "Tamil Nadu", district: "Cuddalore" },
+        { osm_id: "bootstrap_facility_21133445", name: "Hazira LNG Terminal", facility_type: "lng_terminal", lat: 21.1209, lon: 72.6475, state: "Gujarat", district: "Surat" },
+        { osm_id: "bootstrap_facility_22144556", name: "Dhamra LNG Terminal", facility_type: "lng_terminal", lat: 20.8072, lon: 86.9565, state: "Odisha", district: "Bhadrak" },
+        { osm_id: "bootstrap_facility_23155667", name: "Mangalore Refinery and Petrochemicals", facility_type: "petrochemical", lat: 12.9695, lon: 74.8661, state: "Karnataka", district: "Dakshina Kannada" },
+        { osm_id: "bootstrap_facility_24166778", name: "Barauni Refinery", facility_type: "refinery", lat: 25.4187, lon: 86.1259, state: "Bihar", district: "Begusarai" },
       ];
 
       const facilityMap: Record<string, string> = {};
       for (const f of facilitiesData) {
         const res = await client.query(
           `INSERT INTO facilities (osm_id, name, facility_type, geometry, state, district, source, last_synced_at)
-           VALUES ($1, $2, $3, ST_SetSRID(ST_MakePoint($4, $5), 4326), $6, $7, 'osm', NOW())
+           VALUES ($1, $2, $3, ST_SetSRID(ST_MakePoint($4, $5), 4326), $6, $7, 'bootstrap', NOW())
            RETURNING id;`,
           [f.osm_id, f.name, f.facility_type, f.lon, f.lat, f.state, f.district]
         );

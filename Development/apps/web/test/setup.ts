@@ -1,4 +1,24 @@
 import "@testing-library/jest-dom";
+import { vi } from "vitest";
+
+vi.mock("../src/lib/firebase", () => ({
+  auth: {},
+  googleProvider: {},
+}));
+
+vi.mock("firebase/auth", () => ({
+  onAuthStateChanged: vi.fn((_auth, onChange) => {
+    onChange(null);
+    return vi.fn();
+  }),
+  signInWithEmailAndPassword: vi.fn(),
+  createUserWithEmailAndPassword: vi.fn(),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  sendPasswordResetEmail: vi.fn(),
+  confirmPasswordReset: vi.fn(),
+  updateProfile: vi.fn(),
+}));
 
 // Polyfill IntersectionObserver for jsdom & framer-motion whileInView
 class MockIntersectionObserver {

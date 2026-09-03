@@ -1,7 +1,9 @@
 import { withTransaction } from "../../db";
+import { isPointInIndia } from "../firms/india-boundary";
 import { osmOverpassClient } from "./client";
-import { normalizeOsmElements, NormalizedFacilityInput } from "./normalizer";
+import { isTargetIndustrialOsmElement, normalizeOsmElements, NormalizedFacilityInput } from "./normalizer";
 import { telemetryTracker } from "../telemetry";
+import { emitFacilitiesSynced } from "../../realtime/socket";
 import logger from "../../utils/logger";
 
 export interface OsmSyncResult {
@@ -13,6 +15,34 @@ export interface OsmSyncResult {
 
 export class OsmSyncService {
   /**
+   * Import a pre-fetched OSM snapshot. This is used for controlled bulk
+   * imports when the production worker cannot reach public Overpass services.
+   */
+  static async importOsmElements(elements: Parameters<typeof normalizeOsmElements>[0]): Promise<OsmSyncResult> {
+    const startTime = Date.now();
+    const targetElements = elements.filter(isTargetIndustrialOsmElement);
+    const { valid, invalidCount } = normalizeOsmElements(targetElements);
+    // The OSM bounding box includes parts of neighbouring countries. Enforce
+    // the same India land-boundary rule as the FIRMS ingestion before saving.
+    const indiaFacilities = valid.filter((facility) => {
+      const [longitude, latitude] = facility.geometry.coordinates;
+      return isPointInIndia(latitude, longitude);
+    });
+    const bulkFacilities = indiaFacilities.map((facility) => ({ ...facility, source: "osm_bulk" }));
+    const facilitiesUpserted = bulkFacilities.length > 0 ? await this.upsertFacilities(bulkFacilities) : 0;
+
+    return {
+      features_fetched: elements.length,
+      facilities_upserted: facilitiesUpserted,
+      invalid_features:
+        invalidCount +
+        (elements.length - targetElements.length) +
+        (valid.length - indiaFacilities.length),
+      duration_ms: Date.now() - startTime,
+    };
+  }
+
+  /**
    * Synchronize industrial facility infrastructure from OpenStreetMap.
    */
   static async run(customBbox?: string): Promise<OsmSyncResult> {
@@ -20,43 +50,25 @@ export class OsmSyncService {
     logger.info("⚡ [OSM Pipeline] Facility sync job started...");
 
     try {
-      // 1. Fetch Overpass raw elements
-      const elements = await osmOverpassClient.fetchIndustrialFacilities(customBbox);
-
-      // 2. Normalize elements and classify facility types
-      const { valid, invalidCount } = normalizeOsmElements(elements);
-
-      if (valid.length === 0) {
-        const duration_ms = Date.now() - startTime;
-        const result: OsmSyncResult = {
-          features_fetched: elements.length,
-          facilities_upserted: 0,
-          invalid_features: invalidCount,
-          duration_ms,
-        };
-        telemetryTracker.recordOsmRun(result);
-        logger.info(`[OSM Pipeline] Completed in ${duration_ms}ms. 0 facilities to upsert.`);
-        return result;
+      const fetchResult = await osmOverpassClient.fetchIndustrialFacilities(customBbox);
+      if (fetchResult.successfulChunks === 0) {
+        throw new Error(
+          "All OSM Overpass providers failed; no facility data was changed. Retry on the next scheduled sync or use a dedicated data source."
+        );
       }
 
-      // 3. Upsert facilities into PostgreSQL database
-      const upsertedCount = await this.upsertFacilities(valid);
+      const result = await this.importOsmElements(fetchResult.elements);
+      result.duration_ms = Date.now() - startTime;
 
-      const duration_ms = Date.now() - startTime;
-      const result: OsmSyncResult = {
-        features_fetched: elements.length,
-        facilities_upserted: upsertedCount,
-        invalid_features: invalidCount,
-        duration_ms,
-      };
-
-      // 4. Update telemetry
       telemetryTracker.recordOsmRun(result);
+      emitFacilitiesSynced({
+        ...result,
+        synced_at: new Date().toISOString(),
+      });
 
       logger.info(
-        `✅ [OSM Pipeline] Sync job completed successfully in ${duration_ms}ms: ${upsertedCount} facilities upserted.`
+        `[OSM Pipeline] Sync completed in ${result.duration_ms}ms: ${result.facilities_upserted} facility record(s) upserted from ${fetchResult.successfulChunks} successful chunk(s); ${fetchResult.failedChunks} failed chunk(s).`
       );
-
       return result;
     } catch (error: any) {
       const duration_ms = Date.now() - startTime;
@@ -73,12 +85,12 @@ export class OsmSyncService {
     let upsertedCount = 0;
     const chunkSize = 100;
 
-    for (let i = 0; i < facilities.length; i += chunkSize) {
-      const chunk = facilities.slice(i, i + chunkSize);
+    for (let index = 0; index < facilities.length; index += chunkSize) {
+      const chunk = facilities.slice(index, index + chunkSize);
 
       await withTransaction(async (client) => {
-        for (const f of chunk) {
-          const res = await client.query(
+        for (const facility of chunk) {
+          const result = await client.query(
             `INSERT INTO facilities (
               osm_id, name, facility_type, geometry, state, district, source, last_synced_at
             ) VALUES (
@@ -93,18 +105,18 @@ export class OsmSyncService {
               last_synced_at = NOW()
             RETURNING id;`,
             [
-              f.osm_id,
-              f.name,
-              f.facility_type,
-              f.longitude,
-              f.latitude,
-              f.state,
-              f.district,
-              f.source,
+              facility.osm_id,
+              facility.name,
+              facility.facility_type,
+              facility.longitude,
+              facility.latitude,
+              facility.state,
+              facility.district,
+              facility.source,
             ]
           );
 
-          if (res.rowCount && res.rowCount > 0) {
+          if (result.rowCount && result.rowCount > 0) {
             upsertedCount++;
           }
         }
@@ -116,4 +128,3 @@ export class OsmSyncService {
 }
 
 export default OsmSyncService;
-

@@ -1,17 +1,12 @@
 import { AlertSeverity, AlertStatus, PrimaryClass, SubClass } from "@agnidrishti/shared-types";
 
-/**
- * Real-time event constants matching AgniDrishti backend (D6.3).
- */
 export const REALTIME_EVENTS = {
   ALERT_CREATED: "agni:alert:created",
+  FACILITIES_SYNCED: "agni:facilities:synced",
 } as const;
 
 export type RealtimeEventName = (typeof REALTIME_EVENTS)[keyof typeof REALTIME_EVENTS];
 
-/**
- * Payload contract for real-time high-severity alerts.
- */
 export interface AlertCreatedPayload {
   id: string;
   classified_event_id: string;
@@ -34,3 +29,10 @@ export interface AlertCreatedPayload {
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected" | "degraded";
 
+export interface FacilitiesSyncedPayload {
+  features_fetched: number;
+  facilities_upserted: number;
+  invalid_features: number;
+  duration_ms: number;
+  synced_at: string;
+}

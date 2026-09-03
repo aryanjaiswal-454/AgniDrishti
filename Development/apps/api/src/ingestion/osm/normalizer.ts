@@ -15,6 +15,38 @@ export interface NormalizedFacilityInput {
 }
 
 /**
+ * Restrict bulk imports to the industrial categories supported by the product.
+ * A generic `power=plant` tag alone is deliberately insufficient: it would
+ * otherwise import solar and wind sites into a thermal-industrial registry.
+ */
+export function isTargetIndustrialOsmElement(element: OverpassElement): boolean {
+  const tags = element.tags || {};
+  const industrial = (tags.industrial || "").toLowerCase();
+  const manMade = (tags.man_made || "").toLowerCase();
+  const power = (tags.power || "").toLowerCase();
+  const plantSource = (tags["plant:source"] || "").toLowerCase();
+  const landuse = (tags.landuse || "").toLowerCase();
+  const name = (tags.name || "").toLowerCase();
+
+  return (
+    (manMade === "works" && industrial.includes("oil")) ||
+    industrial === "oil" ||
+    industrial === "chemical" ||
+    industrial === "petrochemical" ||
+    (power === "plant" && /coal|gas|oil|thermal/.test(plantSource)) ||
+    (power === "plant" && /thermal|super thermal|ntpc|tps|power station/.test(name)) ||
+    industrial === "iron_and_steel" ||
+    industrial === "steel" ||
+    landuse === "quarry" ||
+    manMade === "mineshaft" ||
+    industrial === "mine" ||
+    (manMade === "storage_tank" && tags.content === "lng") ||
+    industrial === "gas" ||
+    /refinery|petrochemical|steel|lng|gas terminal|petronet|coal|mine|mining|colliery|coalfield|opencast/.test(name)
+  );
+}
+
+/**
  * Classify OSM tags and facility name into canonical FacilityType enum.
  */
 export function classifyFacilityType(tags: Record<string, string> = {}): FacilityType {
@@ -38,6 +70,7 @@ export function classifyFacilityType(tags: Record<string, string> = {}): Facilit
   // 2. Oil Refinery
   if (
     (manMade === "works" && industrial.includes("oil")) ||
+    industrial === "oil" ||
     name.includes("refinery") ||
     name.includes("oil refinery") ||
     industrial === "oil_refinery"

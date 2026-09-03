@@ -18,7 +18,7 @@ describe("BullMQ Ingestion Queues & Schedulers", () => {
     });
   });
 
-  it("should register repeatable cron schedulers for FIRMS and OSM jobs", async () => {
+  it("should enqueue an immediate OSM sync and register its repeatable schedule", async () => {
     const addFirmsSpy = vi.spyOn(firmsQueue, "add").mockResolvedValue({ id: "job1" } as any);
     const addOsmSpy = vi.spyOn(osmQueue, "add").mockResolvedValue({ id: "job2" } as any);
 
@@ -34,6 +34,14 @@ describe("BullMQ Ingestion Queues & Schedulers", () => {
       })
     );
 
+    expect(addOsmSpy).toHaveBeenCalledWith(
+      "immediate-osm-sync",
+      { source: "startup" },
+      expect.objectContaining({
+        removeOnComplete: true,
+        jobId: expect.stringMatching(/^immediate-osm-startup-/),
+      })
+    );
     expect(addOsmSpy).toHaveBeenCalledWith(
       "scheduled-osm-sync",
       { source: "scheduled-cron" },

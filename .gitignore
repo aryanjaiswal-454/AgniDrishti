@@ -140,3 +140,8 @@ logs/
 # JUPYTER
 # ============================================
 .ipynb_checkpoints/
+
+# One-off local repair helpers
+/fix_service.js
+/fix_socket.js
+/.claude/worktrees/

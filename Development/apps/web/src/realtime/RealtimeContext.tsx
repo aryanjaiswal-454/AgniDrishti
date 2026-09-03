@@ -4,7 +4,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../query/queryKeys";
 import { useAuth } from "../context/AuthContext";
 import { createSocketClient } from "./socket";
-import { REALTIME_EVENTS, AlertCreatedPayload, ConnectionStatus } from "./events";
+import {
+  REALTIME_EVENTS,
+  AlertCreatedPayload,
+  ConnectionStatus,
+  FacilitiesSyncedPayload,
+} from "./events";
 import { AlertToastContainer } from "./AlertToastContainer";
 import { auth } from "../lib/firebase";
 
@@ -102,10 +107,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
 
       // Real-time alert listener
       newSocket.on(REALTIME_EVENTS.ALERT_CREATED, (alert: AlertCreatedPayload) => {
-        // 1. Guard against non-high severity
-        
-
-        // 2. Guard against duplicate alert notifications
+        // Guard against duplicate alert notifications
         if (seenAlertIds.current.has(alert.id)) return;
         seenAlertIds.current.add(alert.id);
 
@@ -115,18 +117,26 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
           if (firstKey) seenAlertIds.current.delete(firstKey);
         }
 
-        setLastAlert(alert);
-
-        // Add to toasts (capped at max 3 visible toasts)
-        setToasts((prev) => [alert, ...prev.slice(0, 2)]);
-
-        // 3. Targeted TanStack Query cache invalidation (NO full cache wipe)
+        // Query data must stay current for all alert severities so GIS markers update.
         queryClient.invalidateQueries({ queryKey: queryKeys.alerts.lists() });
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
         queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() });
         if (alert.classified_event_id) {
           queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(alert.classified_event_id) });
         }
+
+        // Toasts are reserved for urgent alerts; lower severities still refresh map data above.
+        if (alert.severity === "high") {
+          setLastAlert(alert);
+          setToasts((prev) => [alert, ...prev.slice(0, 2)]);
+        }
+      });
+
+      newSocket.on(REALTIME_EVENTS.FACILITIES_SYNCED, (_payload: FacilitiesSyncedPayload) => {
+        // Every active facility query (including filter-specific map queries) refetches.
+        queryClient.invalidateQueries({ queryKey: queryKeys.facilities.lists() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.ingestion.status() });
       });
 
       newSocket.connect();
@@ -138,6 +148,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
       isMounted = false;
       if (localSocket) {
         localSocket.off(REALTIME_EVENTS.ALERT_CREATED);
+        localSocket.off(REALTIME_EVENTS.FACILITIES_SYNCED);
         localSocket.disconnect();
       }
       setSocket(null);

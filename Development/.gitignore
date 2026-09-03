@@ -112,6 +112,9 @@ logs/
 *.jpg
 *.jpeg
 
+# Deployable public branding asset (Vite copies this into every production build)
+!apps/web/public/logo.png
+
 # ==============================
 # OpenStreetMap / geospatial data
 # ==============================

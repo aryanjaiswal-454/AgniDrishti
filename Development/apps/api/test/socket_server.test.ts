@@ -8,6 +8,17 @@ import { signToken } from "../src/utils/jwt";
 import { AlertService } from "../src/services/alert.service";
 import * as db from "../src/db";
 
+vi.mock("../src/db", () => ({
+  query: vi.fn(async (_sql: string, params?: unknown[]) => {
+    const email = typeof params?.[0] === "string" ? params[0] : "analyst@aagnazar.in";
+    const role = email.startsWith("admin") ? "admin" : email.startsWith("viewer") ? "viewer" : "analyst";
+    return {
+      rows: [{ id: `user-${role}`, name: `${role} user`, email, role, created_at: new Date().toISOString() }],
+      rowCount: 1,
+    };
+  }),
+}));
+
 describe("Socket.io Real-Time Alert Server (D6.3)", () => {
   let server: http.Server;
   let port: number;
@@ -168,7 +179,7 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
     client.close();
   });
 
-  it("should NOT broadcast medium or low severity alerts via WebSocket", async () => {
+  it("should broadcast medium and low severity alerts so connected maps stay current", async () => {
     const client: ClientSocketType = await new Promise((resolve, reject) => {
       const c = ClientSocket(`http://localhost:${port}`, {
         auth: { token: analystToken },
@@ -178,9 +189,9 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
       c.on("connect_error", reject);
     });
 
-    let receivedCount = 0;
-    client.on(REALTIME_EVENTS.ALERT_CREATED, () => {
-      receivedCount++;
+    const received: AlertCreatedPayload[] = [];
+    client.on(REALTIME_EVENTS.ALERT_CREATED, (alert: AlertCreatedPayload) => {
+      received.push(alert);
     });
 
     // Medium severity
@@ -204,12 +215,11 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
     const emittedMedium = emitAlertCreated(mediumAlert);
     const emittedLow = emitAlertCreated(lowAlert);
 
-    expect(emittedMedium).toBe(false);
-    expect(emittedLow).toBe(false);
+    expect(emittedMedium).toBe(true);
+    expect(emittedLow).toBe(true);
 
-    // Wait a brief tick to ensure no event was received
     await new Promise((r) => setTimeout(r, 100));
-    expect(receivedCount).toBe(0);
+    expect(received.map((alert) => alert.severity).sort()).toEqual(["low", "medium"]);
 
     client.close();
   });
@@ -254,6 +264,15 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
   it("AlertService.createAlert should persist alert to database and trigger broadcast for high-severity", async () => {
     const mockDbQuery = vi.spyOn(db, "query");
 
+    const client: ClientSocketType = await new Promise((resolve, reject) => {
+      const c = ClientSocket(`http://localhost:${port}`, {
+        auth: { token: adminToken },
+        transports: ["websocket"],
+      });
+      c.on("connect", () => resolve(c));
+      c.on("connect_error", reject);
+    });
+
     // Mock INSERT INTO alerts
     mockDbQuery.mockResolvedValueOnce({
       rows: [
@@ -287,15 +306,6 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
       ],
       rowCount: 1,
     } as any);
-
-    const client: ClientSocketType = await new Promise((resolve, reject) => {
-      const c = ClientSocket(`http://localhost:${port}`, {
-        auth: { token: adminToken },
-        transports: ["websocket"],
-      });
-      c.on("connect", () => resolve(c));
-      c.on("connect_error", reject);
-    });
 
     const receivedAlertPromise = new Promise<AlertCreatedPayload>((resolve) => {
       client.on(REALTIME_EVENTS.ALERT_CREATED, resolve);

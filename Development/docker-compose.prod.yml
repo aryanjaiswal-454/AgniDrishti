@@ -40,6 +40,8 @@ services:
       dockerfile: apps/classifier/Dockerfile
     container_name: agnidrishti-classifier-prod
     environment:
+      # Track B reads historical FRP values from the same production PostGIS database.
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-agnidrishti}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-agnidrishti}
       - TRACK_B_CONTRACT_PATH=/app/data/sample/processed/track_b_b4_contract_ready.jsonl
     ports:
       - "8000:8000"

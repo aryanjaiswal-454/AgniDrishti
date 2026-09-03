@@ -37,7 +37,7 @@ describe("Classified Events API", () => {
             land_cover_type: "built_up",
             distance_to_facility_m: "120",
             recurrence_count_90d: 1,
-            z_score_frp: "3.5",
+            z_score_frp: "0",
             confidence_score: "0.95",
             model_version: "v1.0",
             is_anomalous: true,
@@ -74,6 +74,7 @@ describe("Classified Events API", () => {
     expect(res.body.data.length).toBe(1);
     expect(res.body.data[0].primary_class).toBe("industrial");
     expect(res.body.data[0].is_anomalous).toBe(true);
+    expect(res.body.data[0].z_score_frp).toBe(0);
     expect(res.body.data[0].hotspot).toBeDefined();
     expect(res.body.data[0].facility.name).toBe("Bokaro Steel");
   });
@@ -100,7 +101,7 @@ describe("Classified Events API", () => {
             land_cover_type: "built_up",
             distance_to_facility_m: "120",
             recurrence_count_90d: 1,
-            z_score_frp: "3.5",
+            z_score_frp: "0",
             confidence_score: "0.95",
             model_version: "v1.0",
             is_anomalous: true,
@@ -153,6 +154,7 @@ describe("Classified Events API", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.id).toBe(eventId);
+    expect(res.body.data.z_score_frp).toBe(0);
     expect(res.body.data.feedback_history.length).toBe(1);
   });
 });

@@ -18,12 +18,56 @@ export interface OverpassResponse {
   elements: OverpassElement[];
 }
 
+export interface OsmFetchResult {
+  elements: OverpassElement[];
+  successfulChunks: number;
+  failedChunks: number;
+  timedOut: boolean;
+}
+
+const MAX_SYNC_DURATION_MS = 90_000;
+const MAX_ENDPOINT_REQUEST_MS = 15_000;
+
+export function chunkBoundingBox(bbox: string, gridRows: number, gridCols: number): string[] {
+  const coordinates = bbox.split(",").map((value) => Number(value.trim()));
+  const [south, west, north, east] = coordinates;
+
+  if (
+    coordinates.length !== 4 ||
+    coordinates.some((value) => !Number.isFinite(value)) ||
+    south < -90 || north > 90 || west < -180 || east > 180 ||
+    south >= north || west >= east ||
+    !Number.isInteger(gridRows) || gridRows < 1 ||
+    !Number.isInteger(gridCols) || gridCols < 1
+  ) {
+    throw new Error(`Invalid OSM bounding box or chunk grid: bbox="${bbox}", rows=${gridRows}, cols=${gridCols}`);
+  }
+
+  const chunks: string[] = [];
+  const latStep = (north - south) / gridRows;
+  const lonStep = (east - west) / gridCols;
+
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      const chunkSouth = south + row * latStep;
+      const chunkNorth = chunkSouth + latStep;
+      const chunkWest = west + col * lonStep;
+      const chunkEast = chunkWest + lonStep;
+      chunks.push(
+        `${chunkSouth.toFixed(4)},${chunkWest.toFixed(4)},${chunkNorth.toFixed(4)},${chunkEast.toFixed(4)}`
+      );
+    }
+  }
+
+  return chunks;
+}
+
 export class OsmOverpassClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      timeout: config.osm.timeoutMs,
+      timeout: config.osm.requestTimeoutMs,
       headers: {
         "User-Agent": "AgniDrishti-FacilitySync/1.0",
         Accept: "application/json",
@@ -31,36 +75,27 @@ export class OsmOverpassClient {
     });
   }
 
-  /**
-   * Build Overpass QL query for industrial facilities within a bounding box.
-   * Format of bbox: south,west,north,east
-   */
   private buildQuery(bbox: string): string {
     return `
-[out:json][timeout:60];
+[out:json][timeout:${Math.ceil(config.osm.requestTimeoutMs / 1000)}];
 (
-  // 1. Oil Refineries & Petrochemical Works
   nwr["man_made"="works"]["industrial"="oil"](${bbox});
   nwr["industrial"="oil"](${bbox});
   nwr["industrial"="chemical"](${bbox});
   nwr["landuse"="industrial"]["name"~"Refinery|Petrochemical",i](${bbox});
 
-  // 2. Thermal Power Plants
   nwr["power"="plant"]["plant:source"~"coal|gas|oil|thermal",i](${bbox});
   nwr["power"="plant"]["name"~"Thermal|Super Thermal|NTPC|TPS|Power Station",i](${bbox});
 
-  // 3. Steel & Metallurgy Industries
   nwr["industrial"="iron_and_steel"](${bbox});
   nwr["industrial"="steel"](${bbox});
   nwr["landuse"="industrial"]["name"~"Steel|SAIL|Jindal|Tata Steel|JSW",i](${bbox});
 
-  // 4. Mining & Extraction Areas
   nwr["landuse"="quarry"](${bbox});
   nwr["man_made"="mineshaft"](${bbox});
   nwr["industrial"="mine"](${bbox});
   nwr["landuse"="industrial"]["name"~"Coal|Mines|Mining|BCCL|ECL|WCL|SECL|MCL|NCL",i](${bbox});
 
-  // 5. LNG Terminals & Gas Storage
   nwr["man_made"="storage_tank"]["content"="lng"](${bbox});
   nwr["industrial"="gas"](${bbox});
   nwr["landuse"="industrial"]["name"~"LNG|Gas Terminal|Petronet|GAIL",i](${bbox});
@@ -69,54 +104,88 @@ out center tags;
     `.trim();
   }
 
-  /**
-   * Fetch industrial infrastructure elements from OpenStreetMap via Overpass API.
-   */
-  async fetchIndustrialFacilities(customBbox?: string): Promise<OverpassElement[]> {
+  async fetchIndustrialFacilities(customBbox?: string): Promise<OsmFetchResult> {
     const bbox = customBbox || config.osm.areaBbox;
-    const query = this.buildQuery(bbox);
+    let chunks: string[];
 
-    logger.info(`Fetching OSM industrial facilities for bounding box [${bbox}]...`);
+    try {
+      chunks = chunkBoundingBox(bbox, config.osm.chunkRows, config.osm.chunkCols);
+    } catch (error: any) {
+      logger.error(`[OSM Pipeline] ${error.message}`);
+      throw error;
+    }
 
-    // Add fallback mirrors because OSM API is heavily rate-limited and often blocks cloud IPs
-    const endpoints = [
+    logger.info(`Fetching OSM facilities in ${chunks.length} chunks for bbox [${bbox}]...`);
+
+    const endpoints = Array.from(new Set([
       config.osm.overpassUrl,
-      "https://overpass.kumi.systems/api/interpreter",
+      "https://overpass.private.coffee/api/interpreter",
       "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-      "https://z.overpass-api.de/api/interpreter"
-    ];
+      "https://z.overpass-api.de/api/interpreter",
+    ]));
+    const allElements = new Map<string, OverpassElement>();
+    const deadline = Date.now() + MAX_SYNC_DURATION_MS;
+    let successfulChunks = 0;
+    let failedChunks = 0;
+    let timedOut = false;
 
-    let lastError: any = null;
+    for (const [index, chunkBbox] of chunks.entries()) {
+      if (Date.now() >= deadline) {
+        timedOut = true;
+        logger.warn(`[OSM Pipeline] Reached ${MAX_SYNC_DURATION_MS / 1000}s sync deadline; preserving partial results.`);
+        break;
+      }
 
-    for (const url of endpoints) {
-      try {
-        logger.info(`Attempting Overpass query to: ${url}`);
-        const response = await this.client.post<OverpassResponse>(
-          url,
-          `data=${encodeURIComponent(query)}`,
-          {
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            timeout: Math.max(config.osm.timeoutMs || 60000, 30000) // Ensure at least 30s timeout
+      const query = this.buildQuery(chunkBbox);
+      let chunkSuccess = false;
+
+      for (const url of endpoints) {
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0) {
+          timedOut = true;
+          break;
+        }
+
+        try {
+          logger.info(`[OSM Pipeline] Chunk ${index + 1}/${chunks.length}: querying ${url}`);
+          const response = await this.client.post<OverpassResponse>(
+            url,
+            `data=${encodeURIComponent(query)}`,
+            {
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              timeout: Math.min(MAX_ENDPOINT_REQUEST_MS, remainingMs),
+            }
+          );
+
+          const elements = response.data.elements || [];
+          for (const element of elements) {
+            allElements.set(`${element.type}:${element.id}`, element);
           }
-        );
 
-        const elements = response.data.elements || [];
-        logger.info(`Fetched ${elements.length} raw element(s) from OpenStreetMap via ${url}.`);
-        return elements;
-      } catch (error: any) {
-        logger.warn(`Failed to fetch from ${url}: ${error.message}`);
-        lastError = error;
+          logger.info(`[OSM Pipeline] Chunk ${index + 1}/${chunks.length}: fetched ${elements.length} element(s).`);
+          chunkSuccess = true;
+          successfulChunks++;
+          break;
+        } catch (error: any) {
+          logger.warn(`[OSM Pipeline] Chunk ${index + 1}/${chunks.length}: ${url} failed: ${error.message}`);
+        }
+      }
+
+      if (!chunkSuccess) {
+        failedChunks++;
+        logger.warn(`[OSM Pipeline] Chunk ${index + 1}/${chunks.length}: all mirrors failed; continuing with partial results.`);
+      }
+
+      if (index < chunks.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, config.osm.chunkDelayMs));
       }
     }
 
-    logger.error(`All Overpass API endpoints failed. Last error: ${lastError?.message}`);
-    logger.warn("Gracefully returning empty array to prevent worker starvation on Overpass timeouts");
-    return [];
+    const elements = Array.from(allElements.values());
+    logger.info(`[OSM Pipeline] Collected ${elements.length} unique OSM element(s) across ${successfulChunks} successful chunk(s).`);
+    return { elements, successfulChunks, failedChunks, timedOut };
   }
 }
 
 export const osmOverpassClient = new OsmOverpassClient();
 export default osmOverpassClient;
-

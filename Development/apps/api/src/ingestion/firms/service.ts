@@ -1,6 +1,8 @@
-import { query, withTransaction } from "../../db";
-import { firmsClient, FirmsFetchOptions } from "./client";
+import { withTransaction } from "../../db";
+import config from "../../config";
+import { firmsClient, FirmsFetchOptions, redactFirmsError } from "./client";
 import { normalizeFirmsCsv, NormalizedHotspotInput } from "./normalizer";
+import { isPointInIndia } from "./india-boundary";
 import { classificationQueue } from "../../queues";
 import { telemetryTracker } from "../telemetry";
 import logger from "../../utils/logger";
@@ -15,91 +17,127 @@ export interface FirmsIngestionResult {
   duration_ms: number;
 }
 
+const CONTROL_JOB_SOURCES = new Set(["startup", "scheduled-cron"]);
+
+/**
+ * Startup and scheduled jobs fetch every FIRMS collection in FIRMS_SOURCE.
+ * An explicit one-off source remains a one-source run.
+ */
+export function resolveFirmsSources(requestedSource?: string): string[] {
+  const source = requestedSource?.trim();
+  if (source && !CONTROL_JOB_SOURCES.has(source)) {
+    return [source];
+  }
+
+  const configuredSources = config.firms.sources.filter(Boolean);
+  return configuredSources.length > 0 ? configuredSources : ["VIIRS_SNPP_NRT"];
+}
+
 export class FirmsIngestionService {
-  /**
-   * Run FIRMS ingestion cycle for configured sources.
-   */
+  /** Run a complete FIRMS ingestion cycle. */
   static async run(options?: FirmsFetchOptions): Promise<FirmsIngestionResult> {
     const startTime = Date.now();
-    logger.info("⚡ [FIRMS Pipeline] Ingestion job started...");
+    logger.info("[FIRMS Pipeline] Ingestion job started.");
 
     try {
-      // 1. Fetch raw CSV from NASA FIRMS
-      const { source, csvData } = await firmsClient.fetchAreaCsv(options);
+      const sources = resolveFirmsSources(options?.source);
+      let recordsFetched = 0;
+      let recordsAccepted = 0;
+      let recordsInserted = 0;
+      let duplicatesSkipped = 0;
+      let invalidCount = 0;
+      let excludedOutsideIndia = 0;
+      let successfulSources = 0;
 
-      // 2. Normalize and validate records
-      const normalization = normalizeFirmsCsv(csvData);
-      const fetchedCount = normalization.valid.length + normalization.invalidCount;
+      for (const source of sources) {
+        try {
+          // Request each configured collection independently. A transient failure
+          // from one NASA feed must not suppress the other feed.
+          const { csvData } = await firmsClient.fetchAreaCsv({ ...options, source });
+          const normalization = normalizeFirmsCsv(csvData);
+          const fetchedCount = normalization.valid.length + normalization.invalidCount;
+          const indiaHotspots = normalization.valid.filter((hotspot) =>
+            isPointInIndia(hotspot.latitude, hotspot.longitude)
+          );
 
-      if (normalization.invalidCount > 0) {
-        logger.warn(
-          `⚠️ [FIRMS Pipeline] ${normalization.invalidCount} invalid rows skipped out of ${fetchedCount}. Errors: ${normalization.errors.join("; ")}`
-        );
+          successfulSources++;
+          recordsFetched += fetchedCount;
+          recordsAccepted += indiaHotspots.length;
+          invalidCount += normalization.invalidCount;
+          excludedOutsideIndia += normalization.valid.length - indiaHotspots.length;
+
+          if (normalization.invalidCount > 0) {
+            logger.warn(
+              `[FIRMS Pipeline] ${source}: ${normalization.invalidCount} invalid rows skipped out of ${fetchedCount}. Errors: ${normalization.errors.join("; ")}`
+            );
+          }
+
+          if (indiaHotspots.length === 0) {
+            logger.info(`[FIRMS Pipeline] ${source}: no India records to insert.`);
+            continue;
+          }
+
+          const { insertedHotspots, duplicatesCount } = await this.persistHotspots(indiaHotspots);
+          recordsInserted += insertedHotspots.length;
+          duplicatesSkipped += duplicatesCount;
+
+          if (insertedHotspots.length > 0) {
+            await this.publishToClassificationQueue(insertedHotspots);
+          }
+        } catch (sourceError: unknown) {
+          logger.warn(`[FIRMS Pipeline] ${source} fetch failed: ${redactFirmsError(sourceError)}`);
+        }
       }
 
-      if (normalization.valid.length === 0) {
-        const duration_ms = Date.now() - startTime;
-        const result: FirmsIngestionResult = {
-          source,
-          records_fetched: fetchedCount,
-          records_accepted: 0,
-          records_inserted: 0,
-          duplicates_skipped: 0,
-          invalid_count: normalization.invalidCount,
-          duration_ms,
-        };
-        telemetryTracker.recordFirmsRun(result);
-        logger.info(`[FIRMS Pipeline] Completed in ${duration_ms}ms. 0 records to insert.`);
-        return result;
-      }
-
-      // 3. Persist non-duplicate records into PostgreSQL
-      const { insertedHotspots, duplicatesCount } = await this.persistHotspots(normalization.valid);
-
-      // 4. Publish newly inserted records to classification queue for future AI processing
-      if (insertedHotspots.length > 0) {
-        await this.publishToClassificationQueue(insertedHotspots);
+      if (successfulSources === 0) {
+        throw new Error("All configured NASA FIRMS sources failed to fetch.");
       }
 
       const duration_ms = Date.now() - startTime;
       const result: FirmsIngestionResult = {
-        source,
-        records_fetched: fetchedCount,
-        records_accepted: normalization.valid.length,
-        records_inserted: insertedHotspots.length,
-        duplicates_skipped: duplicatesCount,
-        invalid_count: normalization.invalidCount,
+        source: sources.join(","),
+        records_fetched: recordsFetched,
+        records_accepted: recordsAccepted,
+        records_inserted: recordsInserted,
+        duplicates_skipped: duplicatesSkipped,
+        invalid_count: invalidCount,
         duration_ms,
       };
 
-      // 5. Update telemetry
       telemetryTracker.recordFirmsRun(result);
-
       logger.info(
-        `✅ [FIRMS Pipeline] Job completed successfully in ${duration_ms}ms: ${result.records_inserted} inserted, ${result.duplicates_skipped} duplicates skipped.`
+        `[FIRMS Pipeline] Job completed in ${duration_ms}ms: ${recordsInserted} inserted, ${duplicatesSkipped} duplicates skipped, ${excludedOutsideIndia} outside India excluded.`
       );
-
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration_ms = Date.now() - startTime;
-      telemetryTracker.recordFirmsError(error.message, duration_ms);
-      logger.error(`❌ [FIRMS Pipeline] Ingestion job failed after ${duration_ms}ms: ${error.message}`);
+      const message = redactFirmsError(error);
+      telemetryTracker.recordFirmsError(message, duration_ms);
+      logger.error(`[FIRMS Pipeline] Ingestion job failed after ${duration_ms}ms: ${message}`);
       throw error;
     }
   }
 
-  /**
-   * Persist normalized hotspots with database-level deduplication.
-   */
+  /** Persist normalized hotspots with database-level deduplication. */
   private static async persistHotspots(
     hotspots: NormalizedHotspotInput[]
-  ): Promise<{ insertedHotspots: Array<{ id: string; latitude: number; longitude: number; acq_date: string; acq_time: string; frp: number | null; instrument: string }>; duplicatesCount: number }> {
+  ): Promise<{
+    insertedHotspots: Array<{
+      id: string;
+      latitude: number;
+      longitude: number;
+      acq_date: string;
+      acq_time: string;
+      frp: number | null;
+      instrument: string;
+    }>;
+    duplicatesCount: number;
+  }> {
     let insertedCount = 0;
     let duplicatesCount = 0;
     const insertedHotspots: any[] = [];
-
-    // Process in transactional chunks of 100 for high throughput
     const chunkSize = 100;
+
     for (let i = 0; i < hotspots.length; i += chunkSize) {
       const chunk = hotspots.slice(i, i + chunkSize);
 
@@ -143,11 +181,17 @@ export class FirmsIngestionService {
     return { insertedHotspots, duplicatesCount };
   }
 
-  /**
-   * Publish newly inserted hotspots to the downstream classification queue.
-   */
+  /** Publish newly inserted records to downstream classification. */
   private static async publishToClassificationQueue(
-    hotspots: Array<{ id: string; latitude: number; longitude: number; acq_date: string; acq_time: string; frp: number | null; instrument: string }>
+    hotspots: Array<{
+      id: string;
+      latitude: number;
+      longitude: number;
+      acq_date: string;
+      acq_time: string;
+      frp: number | null;
+      instrument: string;
+    }>
   ): Promise<void> {
     try {
       const jobs = hotspots.map((h) => ({
@@ -161,18 +205,15 @@ export class FirmsIngestionService {
           frp: h.frp,
           instrument: h.instrument,
         },
-        opts: {
-          removeOnComplete: true,
-        },
+        opts: { removeOnComplete: true },
       }));
 
       await classificationQueue.addBulk(jobs);
-      logger.info(`📤 Dispatched ${jobs.length} new hotspot(s) to BullMQ classification queue.`);
-    } catch (err: any) {
-      logger.warn(`Failed to dispatch jobs to classification queue (Redis optional in D3): ${err.message}`);
+      logger.info(`Dispatched ${jobs.length} new hotspot(s) to BullMQ classification queue.`);
+    } catch (err: unknown) {
+      logger.warn(`Failed to dispatch jobs to classification queue: ${redactFirmsError(err)}`);
     }
   }
 }
 
 export default FirmsIngestionService;
-

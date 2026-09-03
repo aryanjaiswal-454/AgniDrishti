@@ -6,7 +6,7 @@ import { firebaseAuth } from "../config/firebase";
 import { query } from "../db";
 import { User } from "@agnidrishti/shared-types";
 import logger from "../utils/logger";
-import { REALTIME_EVENTS, AlertCreatedPayload } from "./events";
+import { REALTIME_EVENTS, AlertCreatedPayload, FacilitiesSyncedPayload } from "./events";
 
 export interface AuthenticatedSocketData {
   user: JWTPayload;
@@ -151,14 +151,13 @@ export function clearEmittedAlertCache(): void {
 }
 
 /**
- * Emit a real-time high-severity alert to all connected authenticated clients.
+ * Emit a real-time alert to all connected authenticated clients.
  *
  * Rules:
- * 1. Only emits if severity === 'high'.
- * 2. Idempotent: duplicate calls for the same alert ID will NOT re-emit.
- * 3. Logs broadcast with recipient count.
+ * 1. Idempotent: duplicate calls for the same alert ID will NOT re-emit.
+ * 2. Logs broadcast with recipient count.
  *
- * @returns true if the alert was emitted, false if skipped (not high-severity or already emitted).
+ * @returns true if the alert was emitted, false if skipped as a duplicate.
  */
 export function emitAlertCreated(alert: AlertCreatedPayload): boolean {
   if (!io) {
@@ -166,31 +165,26 @@ export function emitAlertCreated(alert: AlertCreatedPayload): boolean {
     return false;
   }
 
-  // 1. High-severity only rule
-  if (alert.severity !== "high") {
-    logger.debug(`[Socket.io] Alert ${alert.id} skipped: severity is '${alert.severity}' (only 'high' is broadcast).`);
-    return false;
-  }
-
-  // 2. Idempotency check: avoid duplicate broadcasts on retries
+  // 1. Idempotency check: avoid duplicate broadcasts on retries
   if (emittedAlertIds.has(alert.id)) {
     logger.debug(`[Socket.io] Alert ${alert.id} skipped: already broadcast.`);
     return false;
   }
 
-  // Record into bounded set
+  // 2. Record into bounded set
   if (emittedAlertIds.size >= MAX_EMITTED_IDS) {
     const firstKey = emittedAlertIds.values().next().value;
     if (firstKey) emittedAlertIds.delete(firstKey);
   }
   emittedAlertIds.add(alert.id);
 
-  // 3. Broadcast to all authenticated connected clients
+  // 3. Broadcast to all authenticated connected clients. The web client shows
+  // notifications only for high severity, while every severity refreshes map data.
   const recipientCount = io.sockets.sockets.size;
   io.emit(REALTIME_EVENTS.ALERT_CREATED, alert);
 
   logger.info(
-    `[Socket.io] 🚨 High-severity alert broadcast: event=${REALTIME_EVENTS.ALERT_CREATED}, alertId=${alert.id}, recipients=${recipientCount}`
+    `[Socket.io] Alert broadcast: event=${REALTIME_EVENTS.ALERT_CREATED}, severity=${alert.severity}, alertId=${alert.id}, recipients=${recipientCount}`
   );
 
   return true;
@@ -211,3 +205,20 @@ export async function closeSocketServer(): Promise<void> {
   }
 }
 
+
+/**
+ * Emit a real-time event when facilities are synchronized from OSM.
+ */
+export function emitFacilitiesSynced(payload: FacilitiesSyncedPayload): boolean {
+  if (!io) {
+    logger.warn("[Socket.io] emitFacilitiesSynced called but Socket.io server is not initialized.");
+    return false;
+  }
+
+  io.emit(REALTIME_EVENTS.FACILITIES_SYNCED, payload);
+
+  logger.info(
+    `[Socket.io] 🌍 Facilities sync broadcast: UPSERTED=${payload.facilities_upserted}, recipients=${io.sockets.sockets.size}`
+  );
+  return true;
+}

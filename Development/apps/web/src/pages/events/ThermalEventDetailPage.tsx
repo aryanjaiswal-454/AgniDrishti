@@ -208,10 +208,18 @@ export const ThermalEventDetailPage: React.FC<ThermalEventDetailPageProps> = ({
             <div className={`text-2xl font-mono font-bold ${event.is_anomalous ? "text-status-critical" : "text-text-primary"}`}>
               {event.z_score_frp !== null && event.z_score_frp !== undefined
                 ? `+${event.z_score_frp}σ`
-                : "Not available"}
+                : event.facility_id
+                  ? "Insufficient history"
+                  : "No nearby facility"}
             </div>
             <div className="text-[10px] font-mono text-text-muted">
-              {event.z_score_frp && event.z_score_frp > 3.0 ? "Exceeded 3σ threshold" : "Within expected baseline"}
+              {event.z_score_frp !== null && event.z_score_frp !== undefined
+                ? event.z_score_frp > 3.0
+                  ? "Exceeded 3σ threshold"
+                  : "Within expected baseline"
+                : event.facility_id
+                  ? "Awaiting sufficient FRP history"
+                  : "Facility baseline applies within 5 km"}
             </div>
           </Card>
 

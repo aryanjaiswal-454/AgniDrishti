@@ -5,7 +5,7 @@ import { useEvents } from "../../hooks/useEvents";
 import { useFacilities } from "../../hooks/useFacilities";
 import { useGisFilters } from "../../hooks/useGisFilters";
 import { Badge, Button, EmptyState } from "../../components/ui";
-import { Map, RefreshCw, Flame, Building2, AlertTriangle, SearchX } from "lucide-react";
+import { Map, Flame, Building2, AlertTriangle, SearchX } from "lucide-react";
 
 export interface LiveMapPageProps {
   onNavigate: (route: string) => void;
@@ -14,33 +14,16 @@ export interface LiveMapPageProps {
 export const LiveMapPage: React.FC<LiveMapPageProps> = ({ onNavigate }) => {
   const gisFilters = useGisFilters("/live-map");
 
-  const {
-    data: eventsRes,
-    isLoading: eventsLoading,
-    refetch: refetchEvents,
-    isFetching: eventsFetching,
-  } = useEvents(gisFilters.eventParams);
-
-  const {
-    data: facilitiesRes,
-    isLoading: facilitiesLoading,
-    refetch: refetchFacilities,
-    isFetching: facilitiesFetching,
-  } = useFacilities(gisFilters.facilityParams);
+  const { data: eventsRes, isLoading: eventsLoading } = useEvents(gisFilters.eventParams);
+  const { data: facilitiesRes, isLoading: facilitiesLoading } = useFacilities(gisFilters.facilityParams);
 
   const events = eventsRes?.data || [];
   const facilities = facilitiesRes?.data || [];
-  const isRefreshing = eventsFetching || facilitiesFetching;
   const isLoading = eventsLoading || facilitiesLoading;
 
   // Derived filtered counts from actual API data
   const anomalousCount = useMemo(() => events.filter((e) => e.is_anomalous).length, [events]);
   const industrialCount = useMemo(() => events.filter((e) => e.primary_class === "industrial").length, [events]);
-
-  const handleRefresh = () => {
-    refetchEvents();
-    refetchFacilities();
-  };
 
   return (
     <div className="space-y-3">
@@ -84,15 +67,6 @@ export const LiveMapPage: React.FC<LiveMapPageProps> = ({ onNavigate }) => {
             )}
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRefresh}
-            isLoading={isRefreshing}
-            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />}
-          >
-            Refresh Data
-          </Button>
         </div>
       </div>
 

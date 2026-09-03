@@ -20,6 +20,9 @@ export function useFacilities(
   return useQuery({
     queryKey: queryKeys.facilities.list(params),
     queryFn: ({ signal }) => getFacilities(params, signal),
+    // Socket.io refreshes authenticated clients immediately; polling covers disconnected viewers.
+    refetchInterval: 5 * 60 * 1000,
+    refetchIntervalInBackground: true,
     ...options,
   });
 }

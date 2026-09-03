@@ -5,9 +5,21 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RealtimeProvider, useRealtime } from "../src/realtime/RealtimeContext";
 import { AlertToast } from "../src/realtime/AlertToast";
 import { AlertToastContainer } from "../src/realtime/AlertToastContainer";
-import { AlertCreatedPayload, REALTIME_EVENTS } from "../src/realtime/events";
+import {
+  AlertCreatedPayload,
+  FacilitiesSyncedPayload,
+  REALTIME_EVENTS,
+} from "../src/realtime/events";
 import * as socketModule from "../src/realtime/socket";
 import * as authContext from "../src/context/AuthContext";
+
+const mockFacilitiesSynced: FacilitiesSyncedPayload = {
+  features_fetched: 24,
+  facilities_upserted: 20,
+  invalid_features: 1,
+  duration_ms: 8500,
+  synced_at: "2026-09-03T10:00:00.000Z",
+};
 
 const mockHighAlert: AlertCreatedPayload = {
   id: "alt-0000-0000-0001",
@@ -253,6 +265,19 @@ describe("Socket.io Client & Real-Time Alert Updates (D6.4)", () => {
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: ["dashboard", "summary"],
       });
+    });
+
+    it("should invalidate facility, dashboard, and ingestion queries after a facility sync", async () => {
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      render(<TestConsumer />, { wrapper: createWrapper() });
+
+      act(() => {
+        eventListeners[REALTIME_EVENTS.FACILITIES_SYNCED]?.forEach((callback) => callback(mockFacilitiesSynced));
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["facilities", "list"] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["dashboard", "summary"] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["ingestion", "status"] });
     });
 
     it("should ignore duplicate alert emissions (idempotency guard)", async () => {

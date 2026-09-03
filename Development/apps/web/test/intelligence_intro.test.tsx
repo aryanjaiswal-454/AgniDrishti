@@ -28,7 +28,7 @@ describe("IntelligenceIntro Component", () => {
     const onComplete = vi.fn();
     render(<IntelligenceIntro onComplete={onComplete} />);
 
-    expect(screen.getByText(/AGNIDRISHTI/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /AGNI\s*DRISHTI/i })).toBeInTheDocument();
     expect(screen.getByText(/AI-POWERED THERMAL INTELLIGENCE/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Skip cinematic introduction/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Mute intro audio|Unmute intro audio/i })).toBeInTheDocument();

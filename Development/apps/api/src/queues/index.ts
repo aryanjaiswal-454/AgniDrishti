@@ -32,7 +32,7 @@ export async function setupSchedulers(): Promise<void> {
     // 0. Immediate invocation on startup to guarantee data is present!
     await firmsQueue.add(
       "immediate-firms-fetch",
-      { source: config.firms.sources[0] || "VIIRS_SNPP_NRT" },
+      { source: "startup" },
       { removeOnComplete: true, jobId: `immediate-firms-${Date.now()}` }
     );
     logger.info("Queued IMMEDIATE FIRMS fetch on worker startup.");
@@ -40,7 +40,7 @@ export async function setupSchedulers(): Promise<void> {
     await osmQueue.add(
       "immediate-osm-sync",
       { source: "startup" },
-      { removeOnComplete: true, jobId: `immediate-osm-startup-${Date.now()}` }
+      { attempts: 1, removeOnComplete: true, jobId: `immediate-osm-startup-${Date.now()}` }
     );
     logger.info("Queued IMMEDIATE OSM facility sync on worker startup.");
 
@@ -65,6 +65,7 @@ export async function setupSchedulers(): Promise<void> {
         repeat: {
           pattern: config.osm.cronSchedule,
         },
+        attempts: 1,
         jobId: "scheduled-osm-cron-job",
       }
     );
@@ -84,4 +85,3 @@ export async function closeQueues(): Promise<void> {
     classificationQueue.close(),
   ]);
 }
-

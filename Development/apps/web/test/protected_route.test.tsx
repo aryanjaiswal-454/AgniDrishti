@@ -4,6 +4,7 @@ import React from "react";
 import { ProtectedRoute, AuthLoadingScreen } from "../src/components/auth/ProtectedRoute";
 import { AuthProvider } from "../src/context/AuthContext";
 import * as authApi from "../src/api/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 vi.mock("../src/api/auth", () => ({
   loginUser: vi.fn(),
@@ -14,6 +15,11 @@ vi.mock("../src/api/auth", () => ({
 describe("ProtectedRoute & Auth Guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(authApi.getCurrentUser).mockReset().mockResolvedValue(null);
+    vi.mocked(onAuthStateChanged).mockReset().mockImplementation((_auth, onChange) => {
+      onChange(null);
+      return vi.fn();
+    });
   });
 
   it("should display tactical AuthLoadingScreen while checking initial session", () => {
@@ -22,7 +28,6 @@ describe("ProtectedRoute & Auth Guard", () => {
   });
 
   it("should redirect unauthenticated users to /login", async () => {
-    vi.mocked(authApi.getCurrentUser).mockResolvedValueOnce(null);
     const onNavigate = vi.fn();
 
     render(
@@ -47,7 +52,11 @@ describe("ProtectedRoute & Auth Guard", () => {
       role: "analyst" as const,
       created_at: new Date().toISOString(),
     };
-    vi.mocked(authApi.getCurrentUser).mockResolvedValueOnce(mockUser);
+    vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
+    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
+      onChange({ email: mockUser.email } as never);
+      return vi.fn();
+    });
     const onNavigate = vi.fn();
 
     render(
@@ -72,7 +81,11 @@ describe("ProtectedRoute & Auth Guard", () => {
       role: "viewer" as const,
       created_at: new Date().toISOString(),
     };
-    vi.mocked(authApi.getCurrentUser).mockResolvedValueOnce(mockUser);
+    vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
+    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
+      onChange({ email: mockUser.email } as never);
+      return vi.fn();
+    });
     const onNavigate = vi.fn();
 
     render(

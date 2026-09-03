@@ -35,13 +35,13 @@ export function createClassificationWorker(): Worker {
       const dbHotspot = dbHotspotRes.rows[0];
 
       // We send it to the Python FastAPI Classifier service
-      const CLASSIFIER_URL = process.env.CLASSIFIER_URL || "http://localhost:8000";
+      const CLASSIFIER_URL = (process.env.CLASSIFIER_URL || config.classifier.url).replace(/\/+$/, "");
 
       // The FastAPI takes a batch, we send a batch of 1
       
       // D7: Inject Track A geospatial density dynamically
       const countRes = await query(
-        "SELECT COUNT(*) as count FROM hotspots WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 5000)",
+        "SELECT COUNT(*) as count FROM hotspots WHERE ST_DWithin(geometry::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 5000)",
         [dbHotspot.longitude, dbHotspot.latitude]
       );
       const neighborhoodCount = parseInt(countRes.rows[0].count) || 1;
@@ -81,12 +81,14 @@ export function createClassificationWorker(): Worker {
 
         const result = data.results[0];
 
-        // Store into classified_events
-        await withTransaction(async (client) => {
+        // Persist the classified event first. AlertService uses the pool rather
+        // than this transaction client, so alert creation must happen after the
+        // event commit or its foreign-key check can block on uncommitted data.
+        const eventId = await withTransaction(async (client) => {
           // Check if already exists to avoid duplicates if job is retried
           const existing = await client.query(`SELECT id FROM classified_events WHERE hotspot_id = $1`, [result.hotspot_id]);
           if (existing.rows.length > 0) {
-             return;
+             return existing.rows[0].id as string;
           }
 
           const insertRes = await client.query(
@@ -110,14 +112,18 @@ export function createClassificationWorker(): Worker {
             ]
           );
 
-          const eventId = insertRes.rows[0].id;
-
-          // D7 logic: Create real-time alerts if event is an anomalous industrial/natural fire
-          if (result.is_anomalous || result.sub_class === 'industrial_fire') {
-              const severity = result.sub_class === 'industrial_fire' ? 'high' : 'medium';
-              await AlertService.createAlert({ classified_event_id: eventId, severity: severity as any, status: 'new' });
-          }
+          return insertRes.rows[0].id as string;
         });
+
+        // D7: alerts are created after commit. On a retry, avoid creating a
+        // second alert for an already-classified event.
+        if (result.is_anomalous || result.sub_class === 'industrial_fire') {
+          const existingAlert = await query("SELECT id FROM alerts WHERE classified_event_id = $1 LIMIT 1", [eventId]);
+          if (existingAlert.rows.length === 0) {
+            const severity = result.sub_class === 'industrial_fire' ? 'high' : 'medium';
+            await AlertService.createAlert({ classified_event_id: eventId, severity: severity as any, status: "new" });
+          }
+        }
 
         logger.info(`✅ Successfully classified and saved hotspot ${dbHotspot.id}`);
       } catch (err: any) {

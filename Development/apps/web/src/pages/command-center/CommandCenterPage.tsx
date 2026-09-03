@@ -39,20 +39,20 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
     data: eventsRes,
     isLoading: isEventsLoading,
     refetch: refetchEvents,
-  } = useEvents({ limit: 50 });
+  } = useEvents({ limit: 100 });
 
   const {
     data: facilitiesRes,
     isLoading: isFacilitiesLoading,
     refetch: refetchFacilities,
-  } = useFacilities({ limit: 50 });
+  } = useFacilities({ limit: 100 });
 
   const {
     data: alertsRes,
     isLoading: isAlertsLoading,
     error: alertsError,
     refetch: refetchAlerts,
-  } = useAlerts({ limit: 4 });
+  } = useAlerts({ limit: 10 });
 
   const handleRefreshAll = () => {
     refetchSummary();

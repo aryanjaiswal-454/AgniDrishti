@@ -9,6 +9,18 @@ export interface FirmsFetchOptions {
   apiKey?: string;
 }
 
+/** Keep credentials out of errors; Axios may include the request URL. */
+export function redactFirmsError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const withoutUrlKey = message.replace(
+    /(api\/area\/csv\/)[^\/?\s#]+/gi,
+    "$1[REDACTED]"
+  );
+  return config.firms.apiKey
+    ? withoutUrlKey.replaceAll(config.firms.apiKey, "[REDACTED]")
+    : withoutUrlKey;
+}
+
 export class FirmsClient {
   private client: AxiosInstance;
 
@@ -28,10 +40,7 @@ export class FirmsClient {
    */
   async fetchAreaCsv(options?: FirmsFetchOptions): Promise<{ source: string; csvData: string }> {
     const apiKey = options?.apiKey || config.firms.apiKey;
-    let source = config.firms.sources[0] || "VIIRS_SNPP_NRT";
-    if (options?.source && options.source !== "startup" && options.source !== "scheduled-cron") {
-      source = options.source;
-    }
+    const source = options?.source || config.firms.sources[0] || "VIIRS_SNPP_NRT";
     const areaCoordinates = options?.areaCoordinates || config.firms.areaCoordinates;
     const dayRange = options?.dayRange || config.firms.dayRange;
 
@@ -63,7 +72,7 @@ export class FirmsClient {
         logger.error("NASA FIRMS API Authentication Error. Invalid MAP_KEY.");
         throw new Error("Invalid FIRMS MAP_KEY");
       }
-      logger.error(`NASA FIRMS API Network/HTTP Error: ${error.message}`);
+      logger.error(`NASA FIRMS API Network/HTTP Error: ${redactFirmsError(error)}`);
       throw error;
     }
   }
@@ -71,4 +80,3 @@ export class FirmsClient {
 
 export const firmsClient = new FirmsClient();
 export default firmsClient;
-

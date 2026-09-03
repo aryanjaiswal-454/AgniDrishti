@@ -175,12 +175,12 @@ export class AlertService {
   }
 
   /**
-   * Create a new alert in DB and emit high-severity Socket.io real-time broadcast.
+   * Create a new alert in DB and emit a Socket.io real-time broadcast.
    *
    * Flow:
    * 1. DB persistence succeeds
    * 2. Fetch event context
-   * 3. Socket.io broadcast (if high-severity)
+   * 3. Socket.io broadcast
    */
   static async createAlert(input: CreateAlertInput): Promise<AlertWithDetails> {
     const status = input.status || "new";
@@ -208,23 +208,20 @@ export class AlertService {
     // Fetch full alert details with joined event context
     const fullAlert = await AlertService.getAlertById(createdAlert.id);
 
-    // If alert is high-severity, emit real-time event via Socket.io AFTER successful DB commit
-    if (fullAlert.severity === "high") {
-      const payload: AlertCreatedPayload = {
-        id: fullAlert.id,
-        classified_event_id: fullAlert.classified_event_id,
-        severity: fullAlert.severity,
-        status: fullAlert.status,
-        sent_at: fullAlert.sent_at,
-        acknowledged_by: fullAlert.acknowledged_by,
-        event: fullAlert.event,
-      };
+    const payload: AlertCreatedPayload = {
+      id: fullAlert.id,
+      classified_event_id: fullAlert.classified_event_id,
+      severity: fullAlert.severity,
+      status: fullAlert.status,
+      sent_at: fullAlert.sent_at,
+      acknowledged_by: fullAlert.acknowledged_by,
+      event: fullAlert.event,
+    };
 
-      try {
-        emitAlertCreated(payload);
-      } catch (err: any) {
-        logger.error(`[AlertService] Failed to broadcast alert ${fullAlert.id} via Socket.io: ${err.message}`);
-      }
+    try {
+      emitAlertCreated(payload);
+    } catch (err: any) {
+      logger.error(`[AlertService] Failed to broadcast alert ${fullAlert.id} via Socket.io: ${err.message}`);
     }
 
     return fullAlert;

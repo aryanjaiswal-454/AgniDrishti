@@ -45,6 +45,7 @@ TRACK_B_CONTRACT_PATH = Path(os.getenv(
     "TRACK_B_CONTRACT_PATH",
     str(_default_track_b)
 )).resolve()
+TRACK_B_DATABASE_CONFIGURED = bool(os.getenv("DATABASE_URL"))
 
 logger.info(f"Track B contract path: {TRACK_B_CONTRACT_PATH}")
 
@@ -121,7 +122,10 @@ async def health_check():
         "status": "healthy",
         "service": "agnidrishti-classifier",
         "version": "1.0.0",
-        "track_b_available": TRACK_B_CONTRACT_PATH.exists()
+        # Track B now computes against live PostGIS data. The legacy contract
+        # file is optional and is not bundled into the Render classifier image.
+        "track_b_available": TRACK_B_DATABASE_CONFIGURED,
+        "track_b_mode": "live_database" if TRACK_B_DATABASE_CONFIGURED else "unconfigured"
     }
 
 
@@ -211,7 +215,7 @@ async def root():
         },
         "integration_status": {
             "track_a": "active" if TRACK_A_AVAILABLE else "unavailable",
-            "track_b": "active" if TRACK_B_CONTRACT_PATH.exists() else "unavailable"
+            "track_b": "active" if TRACK_B_DATABASE_CONFIGURED else "unconfigured"
         }
     }
 
