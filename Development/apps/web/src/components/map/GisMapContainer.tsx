@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { EventDetail } from "../../api/events";
 import { Facility } from "../../api/facilities";
@@ -15,6 +15,7 @@ import { MapLegend } from "./controls/MapLegend";
 import { MapViewportController } from "./controls/MapViewportController";
 import { MapInvestigationDrawer } from "./panels/MapInvestigationDrawer";
 import { Skeleton } from "../ui";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 export interface GisMapContainerProps {
   events: EventDetail[];
@@ -38,10 +39,12 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
   enableInvestigationPanel = true,
 }) => {
   const [baseMapMode, setBaseMapMode] = useState<BaseMapMode>("satellite");
-  const [clusteringEnabled, setClusteringEnabled] = useState<boolean>(true);
+  const [clusteringEnabled, setClusteringEnabled] = useState<boolean>(false);
   const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_INDIA_VIEWPORT.zoom);
   const [selection, setSelection] = useState<MapSelection>(null);
   const [clusterFitBounds, setClusterFitBounds] = useState<[[number, number], [number, number]] | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapShellRef = useRef<HTMLDivElement>(null);
 
   const [layerVisibility, setLayerVisibility] = useState<MapLayerVisibility>({
     thermal_events: true,
@@ -126,6 +129,34 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
     setSelection(null);
   }, []);
 
+  const handleToggleFullscreen = useCallback(async () => {
+    const mapShell = mapShellRef.current;
+    if (!mapShell) return;
+
+    try {
+      if (document.fullscreenElement === mapShell) {
+        await document.exitFullscreen();
+      } else {
+        await mapShell.requestFullscreen();
+      }
+    } catch {
+      // Fullscreen can be denied by browser permissions or embedded contexts.
+      // The map remains usable in its normal layout when that happens.
+    }
+  }, []);
+
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      setIsFullscreen(document.fullscreenElement === mapShellRef.current);
+      // Leaflet listens for resize; this ensures its canvas measures the new
+      // fullscreen dimensions after the browser transition completes.
+      window.setTimeout(() => window.dispatchEvent(new Event("resize")), 0);
+    };
+
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
+  }, []);
+
   const currentTileConfig = BASEMAP_CONFIGS[baseMapMode];
   const anomalousCount = thermalMarkers.filter((m) => m.is_anomalous).length;
 
@@ -138,7 +169,12 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
   }
 
   return (
-    <div className={`relative w-full z-10 ${minHeight} rounded-xl overflow-hidden border border-border-subtle bg-surface-1 shadow-sm ${className}`}>
+    <div
+      ref={mapShellRef}
+      className={`relative w-full z-10 overflow-hidden border border-border-subtle bg-surface-1 shadow-sm ${
+        isFullscreen ? "h-screen max-h-none rounded-none" : `${minHeight} rounded-xl`
+      } ${className}`}
+    >
       {/* Tactical Map Layer Controls */}
       <MapLayerControls
         layerVisibility={layerVisibility}
@@ -153,6 +189,17 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
         hasSelection={Boolean(selection)}
         onClearSelection={handleClearSelection}
       />
+
+      <button
+        type="button"
+        title={isFullscreen ? "Exit Fullscreen Map (Esc)" : "View Map Fullscreen"}
+        aria-label={isFullscreen ? "Exit fullscreen map" : "View map fullscreen"}
+        aria-pressed={isFullscreen}
+        onClick={handleToggleFullscreen}
+        className="absolute bottom-3 right-3 z-[1100] flex h-10 w-10 items-center justify-center rounded-lg border border-border-normal bg-surface/90 text-intelligence-cyan shadow-lg backdrop-blur-md transition-colors hover:bg-surface-3 hover:text-white focus:outline-none focus:ring-2 focus:ring-intelligence-cyan"
+      >
+        {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+      </button>
 
       {/* Map Legend */}
       <MapLegend

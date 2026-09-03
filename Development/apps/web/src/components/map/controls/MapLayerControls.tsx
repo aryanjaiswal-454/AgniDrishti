@@ -147,4 +147,3 @@ export const MapLayerControls: React.FC<MapLayerControlsProps> = ({
     </div>
   );
 };
-
