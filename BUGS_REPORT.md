@@ -146,3 +146,19 @@ Because the `OsmOverpassClient` forcefully threw fatal exceptions when all mirro
 
 **Concrete Solution**:
 Modified `fetchIndustrialFacilities()` to catch the final fatal error explicitly and return an empty array gracefully `return []`. This permits the ingestion worker to successfully finish its queue cycle smoothly without destroying the server loop, avoiding massive log spam and worker starvation.
+
+---
+
+## 10. Synthetic Data Limitation: Only 8 Facilities Available in UI (Medium)
+**Title**: Overpass API Blockage Limits Facilities to Static Seed Data
+**Severity**: Medium
+**File**: `Development/apps/api/src/db/seed.ts` & `Development/apps/api/src/ingestion/osm/client.ts`
+
+**Root Cause Analysis**:
+Due to the Overpass API throttling and blocking large requests from Docker containers (as partially described in Bug 9), the system is failing to dynamically ingest live maps of industrial sites across India. Consequently, the database relies entirely on the hardcoded `facilitiesData` array located in `seed.ts`, which contains exactly 8 handpicked representative facilities.
+
+**Failure Scenario / System Effect**:
+Even though India houses thousands of heavy industrial sites, the user interface will only display exactly 8 facilities (Jamnagar, Mathura, Bokaro, etc.). The system fails to scale nationally because live OpenStreetMap ingestion is actively failing or being throttled by public mirrors.
+
+**Concrete Solution**:
+To support full national scaling, remove reliance on the public Overpass API for bulk initial ingestion. Instead, pre-populate the Postgres database with a complete static geospatial dataset of Indian industrial facilities (via a `.sql` dump or a robust initial bulk ingestion script), or transition to a commercial/dedicated OSM API mirror that permits massive continent-scale bounding box queries.

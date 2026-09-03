@@ -40,7 +40,7 @@ export function createClassificationWorker(): Worker {
       // The FastAPI takes a batch, we send a batch of 1
       
       // D7: Inject Track A geospatial density dynamically
-      const countRes = await client.query(
+      const countRes = await query(
         "SELECT COUNT(*) as count FROM hotspots WHERE ST_DWithin(geom::geography, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, 5000)",
         [dbHotspot.longitude, dbHotspot.latitude]
       );
