@@ -1,6 +1,6 @@
 import React from "react";
 import { BaseMapMode, MapLayerVisibility } from "../types";
-import { Layers, Globe, Moon, Grid, XCircle } from "lucide-react";
+import { Layers, Globe, Map as MapIcon, Moon, Grid, XCircle } from "lucide-react";
 
 export interface MapLayerControlsProps {
   layerVisibility: MapLayerVisibility;
@@ -128,6 +128,20 @@ export const MapLayerControls: React.FC<MapLayerControlsProps> = ({
           }`}
         >
           <Globe className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          type="button"
+          title="OpenStreetMap Basemap"
+          aria-label="OpenStreetMap Basemap"
+          onClick={() => onChangeBaseMapMode("osm_tactical")}
+          className={`p-1.5 rounded transition-all ${
+            baseMapMode === "osm_tactical"
+              ? "bg-surface-3 text-intelligence-cyan border border-border-normal"
+              : "text-text-muted hover:text-text-primary"
+          }`}
+        >
+          <MapIcon className="w-3.5 h-3.5" />
         </button>
       </div>
 

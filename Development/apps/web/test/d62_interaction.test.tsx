@@ -348,6 +348,10 @@ describe("D6.2 Command Center + GIS Interaction Polish", () => {
       expect(screen.getByText("◆ Facilities (5)")).toBeInTheDocument();
       expect(screen.getByText("▲ Anomalies (2)")).toBeInTheDocument();
       expect(screen.getByText("Clear Selection")).toBeInTheDocument();
+      expect(screen.getByLabelText("OpenStreetMap Basemap")).toBeInTheDocument();
+
+      screen.getByLabelText("OpenStreetMap Basemap").click();
+      expect(onChangeBaseMapMode).toHaveBeenCalledWith("osm_tactical");
     });
   });
 });
