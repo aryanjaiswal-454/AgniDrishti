@@ -28,6 +28,7 @@ import {
 import { useEvent, useSubmitFeedback } from "../../hooks/useEvents";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { EventClassBadge, AnomalyBadge } from "./EventClassBadge";
+import { formatDistanceMeters, formatZScore } from "../../utils/formatters";
 
 export interface ThermalEventDetailPageProps {
   eventId: string;
@@ -207,7 +208,7 @@ export const ThermalEventDetailPage: React.FC<ThermalEventDetailPageProps> = ({
             </div>
             <div className={`text-2xl font-mono font-bold ${event.is_anomalous ? "text-status-critical" : "text-text-primary"}`}>
               {event.z_score_frp !== null && event.z_score_frp !== undefined
-                ? `+${event.z_score_frp}σ`
+                ? formatZScore(event.z_score_frp)
                 : event.facility_id
                   ? "Insufficient history"
                   : "No nearby facility"}
@@ -480,7 +481,7 @@ export const ThermalEventDetailPage: React.FC<ThermalEventDetailPageProps> = ({
                     <span className="text-text-muted">Distance to Center:</span>
                     <span className="text-text-primary font-semibold">
                       {event.distance_to_facility_m !== null && event.distance_to_facility_m !== undefined
-                        ? `${event.distance_to_facility_m} meters`
+                        ? formatDistanceMeters(event.distance_to_facility_m)
                         : "Within 1,000m buffer"}
                     </span>
                   </div>
@@ -507,8 +508,14 @@ export const ThermalEventDetailPage: React.FC<ThermalEventDetailPageProps> = ({
               ) : (
                 <div className="text-xs font-mono text-text-muted space-y-2">
                   <p>
-                    No registered industrial infrastructure intersects the 1,000m buffer zone of this thermal signal.
+                    No industrial facility is within the 5 km association range of this thermal signal.
                   </p>
+                  {event.nearest_facility && (
+                    <div className="p-2.5 rounded bg-surface-2 text-[11px] text-text-secondary">
+                      Nearest monitored facility: <span className="font-semibold text-text-primary">{event.nearest_facility.name || "Unnamed facility"}</span>
+                      {" "}({formatDistanceMeters(event.nearest_facility.distance_m)} away).
+                    </div>
+                  )}
                   <div className="p-2.5 rounded bg-surface-2 text-[11px]">
                     Classified as natural/agricultural thermal occurrence based on land cover analysis and distance thresholds.
                   </div>

@@ -7,15 +7,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8087",
+        target: "http://localhost:3030",
         changeOrigin: true,
       },
       "/health": {
-        target: "http://localhost:8087",
+        target: "http://localhost:3030",
         changeOrigin: true,
       },
       "/socket.io": {
-        target: "http://localhost:8087",
+        target: "http://localhost:3030",
         ws: true,
         changeOrigin: true,
       },

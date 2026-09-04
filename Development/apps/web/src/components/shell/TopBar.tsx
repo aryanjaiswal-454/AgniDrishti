@@ -9,6 +9,8 @@ import {
   Layers,
   LogOut,
   Sliders,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Button, IconButton, Badge } from "../ui";
 import { useAuth } from "../../context/AuthContext";
@@ -39,6 +41,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">(() =>
+    document.documentElement.dataset.theme === "light" ? "light" : "dark"
+  );
 
   const { data: alertsRes } = useAlerts({ limit: 4, status: 'new' });
   const unreadAlerts = alertsRes?.data || [];
@@ -59,6 +64,17 @@ export const TopBar: React.FC<TopBarProps> = ({
     onNavigate("/login");
   };
 
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    try {
+      window.localStorage.setItem("agnidrishti-theme", nextTheme);
+    } catch {
+      // Private browsing can deny local storage; the theme still changes now.
+    }
+    setTheme(nextTheme);
+  };
+
   return (
     <header className="sticky top-0 z-[2000] w-full bg-surface/90 backdrop-blur-md border-b border-border-subtle px-4 py-2.5 flex items-center justify-between gap-4">
       {/* Left: Mobile Toggle & Brand Logo */}
@@ -77,9 +93,11 @@ export const TopBar: React.FC<TopBarProps> = ({
           onClick={() => onNavigate("/command-center")}
           className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <div className="p-1 rounded-lg bg-surface-2 border border-border-subtle group-hover:border-brand-orange/60 transition-colors">
-            <img src="/logo.png" alt="AgniDrishti Logo" className="w-6 h-6 object-contain" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="AgniDrishti Logo"
+            className="w-12 h-12 object-contain transition-transform group-hover:scale-105"
+          />
           <div className="hidden sm:flex flex-col">
             <div className="flex items-center gap-1.5">
               <span className="font-display font-black text-lg tracking-tight text-text-primary">
@@ -112,6 +130,15 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Right: Telemetry Badge, Notifications, Profile */}
       <div className="flex items-center gap-2.5 shrink-0">
+
+        <IconButton
+          icon={theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+        />
 
         {/* Notifications Button & Dropdown */}
         <div className="relative">

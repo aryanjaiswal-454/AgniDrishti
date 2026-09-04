@@ -34,7 +34,7 @@ describe("OpenStreetMap Normalizer & Tag Classifier", () => {
     expect(classifyFacilityType({})).toBe("other_industrial");
   });
 
-  it("should normalize node element with point geometry and retain missing names as null", () => {
+  it("should normalize node element with a stable label when OSM has no name", () => {
     const rawNode: OverpassElement = {
       type: "node",
       id: 123456,
@@ -51,7 +51,7 @@ describe("OpenStreetMap Normalizer & Tag Classifier", () => {
     const normalized = normalizeOsmElement(rawNode);
     expect(normalized).not.toBeNull();
     expect(normalized?.osm_id).toBe("osm_node_123456");
-    expect(normalized?.name).toBeNull(); // Missing name retained as null
+    expect(normalized?.name).toBe("OSM Refinery (osm_node_123456)");
     expect(normalized?.facility_type).toBe("refinery");
     expect(normalized?.state).toBe("Gujarat");
     expect(normalized?.district).toBe("Jamnagar");

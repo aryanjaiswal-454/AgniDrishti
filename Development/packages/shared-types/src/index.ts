@@ -184,6 +184,17 @@ export interface ClassifiedEvent {
   model_version: string;
   is_anomalous: boolean;
   created_at: string;
+  /** Nearest known industrial facility, whether or not it is within the 5 km association threshold. */
+  nearest_facility?: NearestFacility | null;
+}
+
+export interface NearestFacility {
+  id: string;
+  name: string | null;
+  facility_type: FacilityType;
+  state: string | null;
+  district: string | null;
+  distance_m: number;
 }
 
 /**
@@ -269,4 +280,3 @@ export interface AIModelOutputRecord {
   confidence_score: number;
   model_version: string;
 }
-

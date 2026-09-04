@@ -29,6 +29,7 @@ import { useEvents } from "../../hooks/useEvents";
 import { PrimaryClass, SubClass } from "@agnidrishti/shared-types";
 import { EventClassBadge, AnomalyBadge } from "./EventClassBadge";
 import { EventFilterParams } from "../../api/types";
+import { formatDistanceMeters, formatZScore } from "../../utils/formatters";
 
 export interface ThermalEventsPageProps {
   onNavigate: (route: string) => void;
@@ -446,7 +447,7 @@ export const ThermalEventsPage: React.FC<ThermalEventsPageProps> = ({ onNavigate
                         )}
                         {evt.z_score_frp !== null && evt.z_score_frp !== undefined && (
                           <div className="text-[10px] text-text-muted font-mono">
-                            Z-score: +{evt.z_score_frp}σ
+                            Z-score: {formatZScore(evt.z_score_frp)}
                           </div>
                         )}
                       </td>
@@ -461,13 +462,22 @@ export const ThermalEventsPage: React.FC<ThermalEventsPageProps> = ({ onNavigate
                               <Building2 className="w-3 h-3 text-brand-amber" />
                               <span>
                                 {evt.distance_to_facility_m !== null && evt.distance_to_facility_m !== undefined
-                                  ? `${evt.distance_to_facility_m}m buffer`
+                                  ? `${formatDistanceMeters(evt.distance_to_facility_m)} buffer`
                                   : "Intersecting buffer"}
                               </span>
                             </div>
                           </div>
+                        ) : evt.nearest_facility ? (
+                          <div>
+                            <div className="text-text-secondary font-semibold text-[11px] truncate max-w-[160px]">
+                              Nearest: {evt.nearest_facility.name || "Unnamed facility"}
+                            </div>
+                            <div className="text-[10px] text-text-muted mt-0.5">
+                              {formatDistanceMeters(evt.nearest_facility.distance_m)} away · outside 5 km association range
+                            </div>
+                          </div>
                         ) : (
-                          <span className="text-text-muted text-[11px]">No registered facility</span>
+                          <span className="text-text-muted text-[11px]">No facility records available</span>
                         )}
                       </td>
 

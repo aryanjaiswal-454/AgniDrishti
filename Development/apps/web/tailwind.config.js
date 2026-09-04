@@ -11,49 +11,50 @@ export default {
       },
       colors: {
         // Backgrounds
-        void: "#07090C",
-        base: "#0B0F14",
+        void: "rgb(var(--color-void) / <alpha-value>)",
+        base: "rgb(var(--color-base) / <alpha-value>)",
 
         // Surfaces
         surface: {
-          DEFAULT: "#10151C",
-          2: "#151B23",
-          3: "#1B222C",
+          DEFAULT: "rgb(var(--color-surface) / <alpha-value>)",
+          1: "rgb(var(--color-surface-1) / <alpha-value>)",
+          2: "rgb(var(--color-surface-2) / <alpha-value>)",
+          3: "rgb(var(--color-surface-3) / <alpha-value>)",
         },
 
         // Borders
         border: {
-          subtle: "#202832",
-          normal: "#2A3440",
-          active: "#394552",
+          subtle: "rgb(var(--color-border-subtle) / <alpha-value>)",
+          normal: "rgb(var(--color-border-normal) / <alpha-value>)",
+          active: "rgb(var(--color-border-active) / <alpha-value>)",
         },
 
         // Brand Palette (Thermal / Fire Emphasis)
         brand: {
-          orange: "#FF7A18",
-          amber: "#FFB547",
-          glow: "rgba(255, 122, 24, 0.15)",
+          orange: "rgb(var(--color-brand-orange) / <alpha-value>)",
+          amber: "rgb(var(--color-brand-amber) / <alpha-value>)",
+          glow: "rgb(var(--color-brand-orange) / 0.15)",
         },
 
         // Intelligence / AI Accents
         intelligence: {
-          cyan: "#31C7D4",
-          glow: "rgba(49, 199, 212, 0.15)",
+          cyan: "rgb(var(--color-intelligence-cyan) / <alpha-value>)",
+          glow: "rgb(var(--color-intelligence-cyan) / 0.15)",
         },
 
         // Semantic Statuses
         status: {
-          critical: "#FF4D5A",
-          warning: "#FFB547",
-          success: "#39D98A",
-          info: "#5CA9FF",
+          critical: "rgb(var(--color-status-critical) / <alpha-value>)",
+          warning: "rgb(var(--color-status-warning) / <alpha-value>)",
+          success: "rgb(var(--color-status-success) / <alpha-value>)",
+          info: "rgb(var(--color-status-info) / <alpha-value>)",
         },
 
         // Text Colors
         text: {
-          primary: "#F0F4F8",
-          secondary: "#9BA3AF",
-          muted: "#636D7E",
+          primary: "rgb(var(--color-text-primary) / <alpha-value>)",
+          secondary: "rgb(var(--color-text-secondary) / <alpha-value>)",
+          muted: "rgb(var(--color-text-muted) / <alpha-value>)",
         },
       },
       borderRadius: {

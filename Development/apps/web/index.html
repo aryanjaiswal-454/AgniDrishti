@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,6 +8,13 @@
       content="AgniDrishti — AI-Powered Thermal Intelligence. Detection and classification of industrial fires and persistent thermal sources using NASA FIRMS, OSM & satellite data."
     />
     <title>AgniDrishti — AI-Powered Thermal Intelligence</title>
+    <script>
+      try {
+        if (localStorage.getItem("agnidrishti-theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+        }
+      } catch {}
+    </script>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

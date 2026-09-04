@@ -14,6 +14,20 @@ export interface NormalizedFacilityInput {
   source: string;
 }
 
+const FACILITY_TYPE_DISPLAY_NAME: Record<FacilityType, string> = {
+  refinery: "Refinery",
+  power_plant: "Thermal Power Plant",
+  steel: "Steel Facility",
+  mining: "Mining Site",
+  lng_terminal: "LNG Terminal",
+  petrochemical: "Petrochemical Facility",
+  other_industrial: "Industrial Facility",
+};
+
+function fallbackFacilityName(facilityType: FacilityType, osmId: string): string {
+  return `OSM ${FACILITY_TYPE_DISPLAY_NAME[facilityType]} (${osmId})`;
+}
+
 /**
  * Restrict bulk imports to the industrial categories supported by the product.
  * A generic `power=plant` tag alone is deliberately insufficient: it would
@@ -157,11 +171,9 @@ export function normalizeOsmElement(element: OverpassElement): NormalizedFacilit
   const normalizedLat = normalizeCoordinate(lat);
   const normalizedLon = normalizeCoordinate(lon);
 
-  // Preserve unnamed facilities with name = null (flagged for review)
-  const rawName = tags.name || tags["name:en"] || tags.operator || tags.brand;
-  const name = rawName ? rawName.trim() : null;
-
   const facilityType = classifyFacilityType(tags);
+  const rawName = tags.name || tags["name:en"] || tags.operator || tags.brand;
+  const name = rawName?.trim() || fallbackFacilityName(facilityType, osmId);
 
   const state = tags["addr:state"] || tags["is_in:state"] || null;
   const district = tags["addr:district"] || tags["is_in:district"] || tags["addr:city"] || null;

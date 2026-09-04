@@ -99,14 +99,14 @@ export function createClassificationWorker(): Worker {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
             [
               result.hotspot_id,
-              result.facility_id || null,
+              result.facility_id ?? null,
               result.primary_class,
               result.sub_class,
               result.land_cover_type || null,
-              result.distance_to_facility_m || null,
+              result.distance_to_facility_m ?? null,
               result.recurrence_count_90d || 0,
-              result.z_score_frp || null,
-              result.confidence_score || 0.0,
+              result.z_score_frp ?? null,
+              result.confidence_score ?? 0.0,
               result.model_version || "unknown",
               result.is_anomalous || false
             ]

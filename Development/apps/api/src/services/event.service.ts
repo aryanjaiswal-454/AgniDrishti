@@ -119,10 +119,30 @@ export class EventService {
         f.name as facility_name,
         f.facility_type,
         f.state as facility_state,
-        f.district as facility_district
+        f.district as facility_district,
+        -- Nearest facility is always returned for spatial context, even when
+        -- it is farther than the 5 km association threshold.
+        nearest.id as nearest_facility_id,
+        nearest.name as nearest_facility_name,
+        nearest.facility_type as nearest_facility_type,
+        nearest.state as nearest_facility_state,
+        nearest.district as nearest_facility_district,
+        nearest.distance_m as nearest_facility_distance_m
        FROM classified_events ce
        JOIN hotspots h ON ce.hotspot_id = h.id
        LEFT JOIN facilities f ON ce.facility_id = f.id
+       LEFT JOIN LATERAL (
+         SELECT
+           candidate.id,
+           candidate.name,
+           candidate.facility_type,
+           candidate.state,
+           candidate.district,
+           ST_Distance(candidate.geometry::geography, h.geometry::geography) as distance_m
+         FROM facilities candidate
+         ORDER BY ST_Distance(candidate.geometry::geography, h.geometry::geography), candidate.id
+         LIMIT 1
+       ) nearest ON TRUE
        ${whereClause}
        ORDER BY ce.created_at DESC, h.acq_date DESC
        LIMIT $${idx++} OFFSET $${idx++};`,
@@ -136,7 +156,7 @@ export class EventService {
       primary_class: row.primary_class,
       sub_class: row.sub_class,
       land_cover_type: row.land_cover_type,
-      distance_to_facility_m: row.distance_to_facility_m ? parseFloat(row.distance_to_facility_m) : null,
+      distance_to_facility_m: row.distance_to_facility_m !== null && row.distance_to_facility_m !== undefined ? parseFloat(row.distance_to_facility_m) : null,
       recurrence_count_90d: row.recurrence_count_90d,
       z_score_frp: row.z_score_frp !== null && row.z_score_frp !== undefined ? parseFloat(row.z_score_frp) : null,
       confidence_score: parseFloat(row.confidence_score),
@@ -169,6 +189,16 @@ export class EventService {
             district: row.facility_district,
             source: "osm",
             last_synced_at: null,
+          }
+        : null,
+      nearest_facility: row.nearest_facility_id
+        ? {
+            id: row.nearest_facility_id,
+            name: row.nearest_facility_name,
+            facility_type: row.nearest_facility_type,
+            state: row.nearest_facility_state,
+            district: row.nearest_facility_district,
+            distance_m: parseFloat(row.nearest_facility_distance_m),
           }
         : null,
     }));
@@ -217,10 +247,28 @@ export class EventService {
         f.facility_type,
         f.state as facility_state,
         f.district as facility_district,
-        ST_AsGeoJSON(f.geometry)::jsonb as facility_geometry
+        ST_AsGeoJSON(f.geometry)::jsonb as facility_geometry,
+        nearest.id as nearest_facility_id,
+        nearest.name as nearest_facility_name,
+        nearest.facility_type as nearest_facility_type,
+        nearest.state as nearest_facility_state,
+        nearest.district as nearest_facility_district,
+        nearest.distance_m as nearest_facility_distance_m
        FROM classified_events ce
        JOIN hotspots h ON ce.hotspot_id = h.id
        LEFT JOIN facilities f ON ce.facility_id = f.id
+       LEFT JOIN LATERAL (
+         SELECT
+           candidate.id,
+           candidate.name,
+           candidate.facility_type,
+           candidate.state,
+           candidate.district,
+           ST_Distance(candidate.geometry::geography, h.geometry::geography) as distance_m
+         FROM facilities candidate
+         ORDER BY ST_Distance(candidate.geometry::geography, h.geometry::geography), candidate.id
+         LIMIT 1
+       ) nearest ON TRUE
        WHERE ce.id = $1;`,
       [id]
     );
@@ -246,7 +294,7 @@ export class EventService {
       primary_class: row.primary_class,
       sub_class: row.sub_class,
       land_cover_type: row.land_cover_type,
-      distance_to_facility_m: row.distance_to_facility_m ? parseFloat(row.distance_to_facility_m) : null,
+      distance_to_facility_m: row.distance_to_facility_m !== null && row.distance_to_facility_m !== undefined ? parseFloat(row.distance_to_facility_m) : null,
       recurrence_count_90d: row.recurrence_count_90d,
       z_score_frp: row.z_score_frp !== null && row.z_score_frp !== undefined ? parseFloat(row.z_score_frp) : null,
       confidence_score: parseFloat(row.confidence_score),
@@ -280,6 +328,16 @@ export class EventService {
             district: row.facility_district,
             source: "osm",
             last_synced_at: null,
+          }
+        : null,
+      nearest_facility: row.nearest_facility_id
+        ? {
+            id: row.nearest_facility_id,
+            name: row.nearest_facility_name,
+            facility_type: row.nearest_facility_type,
+            state: row.nearest_facility_state,
+            district: row.nearest_facility_district,
+            distance_m: parseFloat(row.nearest_facility_distance_m),
           }
         : null,
       feedback_history: feedbackRes.rows,
