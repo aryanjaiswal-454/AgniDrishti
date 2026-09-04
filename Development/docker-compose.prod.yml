@@ -107,8 +107,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3030}
-        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3030}
+        # Docker exposes the API on localhost:3030. Keep this separate from
+        # Development/.env, where VITE_API_URL is used by the non-Docker API
+        # development server on port 8087.
+        VITE_API_URL: ${DOCKER_VITE_API_URL:-http://localhost:3030}
+        VITE_WS_URL: ${DOCKER_VITE_WS_URL:-ws://localhost:3030}
     container_name: agnidrishti-web-prod
     ports:
       - "80:80"
