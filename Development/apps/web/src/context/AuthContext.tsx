@@ -11,10 +11,16 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
-  onAuthStateChanged,
+  onIdTokenChanged,
   confirmPasswordReset,
-  updateProfile
+  updateProfile,
+  type User as FirebaseUser,
 } from "firebase/auth";
+
+const PROFILE_SYNC_ATTEMPTS = 3;
+const PROFILE_SYNC_RETRY_MS = 350;
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 export interface AuthContextValue {
   user: UserProfile | null;
@@ -37,50 +43,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Resolve the Firebase token first, then use that exact token to establish
+   * the backend profile. This prevents the Google-popup race where navigation
+   * could occur before auth.currentUser was available to the API client.
+   */
+  const synchronizeProfile = useCallback(async (firebaseUser: FirebaseUser) => {
+    setStatus("loading");
+
+    let lastError: unknown;
+    for (let attempt = 0; attempt < PROFILE_SYNC_ATTEMPTS; attempt += 1) {
+      try {
+        const idToken = await firebaseUser.getIdToken();
+        const currentUser = await getCurrentUser(idToken);
+        if (currentUser) {
+          setUser(currentUser);
+          setStatus("authenticated");
+          return currentUser;
+        }
+        lastError = new Error("Your authenticated user profile was not returned by the API.");
+      } catch (err) {
+        lastError = err;
+      }
+
+      if (attempt < PROFILE_SYNC_ATTEMPTS - 1) {
+        await wait(PROFILE_SYNC_RETRY_MS * (attempt + 1));
+      }
+    }
+
+    setUser(null);
+    setStatus("unauthenticated");
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Unable to establish the authenticated session.");
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
-    // Listen to Firebase Auth state changes
-    const unsubscribe = onAuthStateChanged(
+    // onIdTokenChanged fires only once Firebase has a usable ID token, unlike
+    // the old observer path which could race the first API request after a
+    // Google popup completed.
+    const unsubscribe = onIdTokenChanged(
       auth,
       async (firebaseUser) => {
         if (firebaseUser) {
           try {
-            console.log('Firebase user authenticated:', firebaseUser.email);
-            const currentUser = await getCurrentUser();
-            if (isMounted) {
-              if (currentUser) {
-                console.log('Backend user profile fetched:', currentUser.email, currentUser);
-                setUser(currentUser);
-                setStatus("authenticated");
-                console.log('[AuthContext] Status set to authenticated');
-              } else {
-                console.warn('No backend user profile found');
-                setUser(null);
-                setStatus("unauthenticated");
-              }
-            }
+            await synchronizeProfile(firebaseUser);
           } catch (err: any) {
-            console.error('Error fetching backend user:', err);
-            console.error('Error details:', { message: err.message, status: err.status, code: err.code });
+            console.error("Unable to synchronize the authenticated user profile:", err);
             if (isMounted) {
               setUser(null);
               setStatus("unauthenticated");
-
-              // If backend returns 401/403, it means the user is deleted or unauthorized
-              // Force logout from Firebase to clear the invalid session
-              if (err.status === 401 || err.status === 403) {
-                console.log('Backend auth error - logging out from Firebase');
-                try {
-                  await firebaseSignOut(auth);
-                } catch (logoutErr) {
-                  console.error('Error during forced logout:', logoutErr);
-                }
-              }
             }
           }
         } else {
-          console.log('No Firebase user authenticated');
           if (isMounted) {
             setUser(null);
             setStatus("unauthenticated");
@@ -100,15 +117,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [synchronizeProfile]);
 
   const login = async (email: string, pass: string) => {
     setError(null);
+    setStatus("loading");
     try {
-      console.log('Starting email/password login...');
-      await signInWithEmailAndPassword(auth, email, pass);
-      console.log('Login successful');
-      // State updates automatically via onAuthStateChanged
+      const credential = await signInWithEmailAndPassword(auth, email, pass);
+      await credential.user.getIdToken(true);
+      await synchronizeProfile(credential.user);
     } catch (err: any) {
       console.error('Login error:', err);
       let msg = "Failed to log in";
@@ -131,21 +148,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setError(msg);
+      setStatus("unauthenticated");
       throw new Error(msg);
     }
   };
 
   const signup = async (name: string, email: string, pass: string) => {
     setError(null);
+    setStatus("loading");
     try {
-      console.log('Starting signup...');
       const res = await createUserWithEmailAndPassword(auth, email, pass);
       if (res.user) {
         await updateProfile(res.user, { displayName: name });
+        await res.user.getIdToken(true);
+        await synchronizeProfile(res.user);
       }
-      console.log('Signup successful');
-      // State updates automatically via onAuthStateChanged and will sync to backend now
-      // and backend will read decoded.name
     } catch (err: any) {
       console.error('Signup error:', err);
       let msg = "Failed to sign up";
@@ -164,17 +181,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setError(msg);
+      setStatus("unauthenticated");
       throw new Error(msg);
     }
   };
 
   const googleLogin = async () => {
     setError(null);
+    setStatus("loading");
     try {
-      console.log('Starting Google sign-in...');
       const result = await signInWithPopup(auth, googleProvider);
-      console.log('Google sign-in successful:', result.user.email);
-      // State updates automatically via onAuthStateChanged
+      // Force a fresh token once after the popup, then wait until /auth/me has
+      // confirmed the profile. Callers now resolve only when navigation is safe.
+      await result.user.getIdToken(true);
+      await synchronizeProfile(result.user);
     } catch (err: any) {
       console.error('Google sign-in error:', err);
       let msg = "Google Authentication failed";
@@ -193,6 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setError(msg);
+      setStatus("unauthenticated");
       throw new Error(msg);
     }
   };

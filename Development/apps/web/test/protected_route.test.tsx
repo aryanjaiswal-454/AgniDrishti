@@ -4,7 +4,7 @@ import React from "react";
 import { ProtectedRoute, AuthLoadingScreen } from "../src/components/auth/ProtectedRoute";
 import { AuthProvider } from "../src/context/AuthContext";
 import * as authApi from "../src/api/auth";
-import { onAuthStateChanged } from "firebase/auth";
+import { onIdTokenChanged } from "firebase/auth";
 
 vi.mock("../src/api/auth", () => ({
   loginUser: vi.fn(),
@@ -16,7 +16,7 @@ describe("ProtectedRoute & Auth Guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authApi.getCurrentUser).mockReset().mockResolvedValue(null);
-    vi.mocked(onAuthStateChanged).mockReset().mockImplementation((_auth, onChange) => {
+    vi.mocked(onIdTokenChanged).mockReset().mockImplementation((_auth, onChange) => {
       onChange(null);
       return vi.fn();
     });
@@ -53,8 +53,8 @@ describe("ProtectedRoute & Auth Guard", () => {
       created_at: new Date().toISOString(),
     };
     vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
-    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
-      onChange({ email: mockUser.email } as never);
+    vi.mocked(onIdTokenChanged).mockImplementationOnce((_auth, onChange) => {
+      onChange({ email: mockUser.email, getIdToken: vi.fn().mockResolvedValue("firebase-token") } as never);
       return vi.fn();
     });
     const onNavigate = vi.fn();
@@ -82,8 +82,8 @@ describe("ProtectedRoute & Auth Guard", () => {
       created_at: new Date().toISOString(),
     };
     vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
-    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
-      onChange({ email: mockUser.email } as never);
+    vi.mocked(onIdTokenChanged).mockImplementationOnce((_auth, onChange) => {
+      onChange({ email: mockUser.email, getIdToken: vi.fn().mockResolvedValue("firebase-token") } as never);
       return vi.fn();
     });
     const onNavigate = vi.fn();

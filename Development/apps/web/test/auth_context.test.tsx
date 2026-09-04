@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { onIdTokenChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import * as authApi from "../src/api/auth";
 
@@ -12,17 +12,18 @@ describe("AuthContext & Session Provider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authApi.getCurrentUser).mockReset().mockResolvedValue(null);
-    vi.mocked(onAuthStateChanged).mockReset().mockImplementation((_auth, onChange) => {
+    vi.mocked(onIdTokenChanged).mockReset().mockImplementation((_auth, onChange) => {
       onChange(null);
       return vi.fn();
     });
     vi.mocked(signInWithEmailAndPassword).mockReset();
+    vi.mocked(signInWithPopup).mockReset();
     vi.mocked(signOut).mockReset();
   });
 
   const authenticateFirebaseUser = (email: string) => {
-    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
-      onChange({ email } as never);
+    vi.mocked(onIdTokenChanged).mockImplementationOnce((_auth, onChange) => {
+      onChange({ email, getIdToken: vi.fn().mockResolvedValue("firebase-token") } as never);
       return vi.fn();
     });
   };
@@ -45,21 +46,47 @@ describe("AuthContext & Session Provider", () => {
 
   it("signs in through Firebase and then syncs the backend profile", async () => {
     let listener: ((user: unknown) => void) | undefined;
-    vi.mocked(onAuthStateChanged).mockImplementationOnce((_auth, onChange) => {
+    vi.mocked(onIdTokenChanged).mockImplementationOnce((_auth, onChange) => {
       listener = onChange;
       onChange(null);
       return vi.fn();
     });
     const mockUser = { id: "u2", email: "admin@aagnazar.in", name: "Admin Commander", role: "admin" as const, created_at: new Date().toISOString() };
     vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
+    const firebaseUser = { email: mockUser.email, getIdToken: vi.fn().mockResolvedValue("fresh-token") };
     vi.mocked(signInWithEmailAndPassword).mockImplementationOnce(async () => {
-      listener?.({ email: mockUser.email });
-      return {} as never;
+      listener?.(firebaseUser);
+      return { user: firebaseUser } as never;
     });
     const { result } = renderHook(() => useAuth(), { wrapper });
     await waitFor(() => expect(result.current.status).toBe("unauthenticated"));
     await act(async () => result.current.login(mockUser.email, "DemoPass123!"));
     await waitFor(() => expect(result.current.status).toBe("authenticated"));
+    expect(result.current.user).toEqual(mockUser);
+  });
+
+  it("does not finish Google sign-in until the API profile is synchronized", async () => {
+    let listener: ((user: unknown) => void) | undefined;
+    vi.mocked(onIdTokenChanged).mockImplementationOnce((_auth, onChange) => {
+      listener = onChange;
+      onChange(null);
+      return vi.fn();
+    });
+    const mockUser = { id: "u-google", email: "google@example.com", name: "Google User", role: "viewer" as const, created_at: new Date().toISOString() };
+    const firebaseUser = { email: mockUser.email, getIdToken: vi.fn().mockResolvedValue("fresh-google-token") };
+    vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
+    vi.mocked(signInWithPopup).mockImplementationOnce(async () => {
+      listener?.(firebaseUser);
+      return { user: firebaseUser } as never;
+    });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("unauthenticated"));
+    await act(async () => result.current.googleLogin());
+
+    expect(firebaseUser.getIdToken).toHaveBeenCalledWith(true);
+    expect(authApi.getCurrentUser).toHaveBeenCalledWith("fresh-google-token");
+    expect(result.current.status).toBe("authenticated");
     expect(result.current.user).toEqual(mockUser);
   });
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./query";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -55,23 +55,18 @@ function AppContent() {
     };
   }, []);
 
-  const navigateTo = (route: string) => {
+  const navigateTo = useCallback((route: string) => {
     setCurrentRoute(route);
     window.history.pushState({}, "", `#${route}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     const isAuthRoute = currentRoute === "/login" || currentRoute === "/signup" || currentRoute === "/forgot-password" || currentRoute.startsWith("/reset-password");
-    console.log('[App] Auth redirect check:', { status, currentRoute, isAuthRoute });
     if (status === "authenticated" && isAuthRoute) {
-      console.log('[App] Redirecting to command center...');
-      // Use a small delay to ensure state updates are complete
-      setTimeout(() => {
-        navigateTo("/command-center");
-      }, 100);
+      navigateTo("/command-center");
     }
-  }, [status, currentRoute]);
+  }, [status, currentRoute, navigateTo]);
 
   if (currentRoute === "/" || currentRoute === "/landing") return <LandingPage onNavigate={navigateTo} />;
   if (currentRoute === "/login") return <LoginPage onNavigate={navigateTo} />;

@@ -7,7 +7,7 @@ vi.mock("../src/lib/firebase", () => ({
 }));
 
 vi.mock("firebase/auth", () => ({
-  onAuthStateChanged: vi.fn((_auth, onChange) => {
+  onIdTokenChanged: vi.fn((_auth, onChange) => {
     onChange(null);
     return vi.fn();
   }),

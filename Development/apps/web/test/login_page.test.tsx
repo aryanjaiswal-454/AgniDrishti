@@ -35,15 +35,23 @@ describe("LoginPage Component", () => {
   });
 
   it("submits credentials to Firebase and lets app-level auth routing handle navigation", async () => {
-    vi.mocked(signInWithEmailAndPassword).mockResolvedValueOnce({} as never);
+    const firebaseUser = { getIdToken: vi.fn().mockResolvedValue("fresh-token") };
+    vi.mocked(authApi.getCurrentUser).mockResolvedValueOnce({
+      id: "u1",
+      email: "analyst@aagnazar.in",
+      name: "Analyst",
+      role: "analyst",
+      created_at: new Date().toISOString(),
+    });
+    vi.mocked(signInWithEmailAndPassword).mockResolvedValueOnce({ user: firebaseUser } as never);
     const onNavigate = renderPage();
     await waitFor(() => expect(screen.getByRole("button", { name: "Login" })).not.toBeDisabled());
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "analyst@aagnazar.in" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "AnalystPassword123!" } });
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     await waitFor(() => expect(signInWithEmailAndPassword).toHaveBeenCalledWith({}, "analyst@aagnazar.in", "AnalystPassword123!"));
+    await waitFor(() => expect(authApi.getCurrentUser).toHaveBeenCalledWith("fresh-token"));
     expect(onNavigate).not.toHaveBeenCalled();
-    expect(authApi.getCurrentUser).not.toHaveBeenCalled();
   });
 
   it("shows Firebase credential errors", async () => {
