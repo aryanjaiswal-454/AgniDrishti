@@ -5,4 +5,5 @@ export * from "./useEvents";
 export * from "./useAlerts";
 export * from "./useDashboard";
 export * from "./useIngestion";
+export * from "./useSettings";
 

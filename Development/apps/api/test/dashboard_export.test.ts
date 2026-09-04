@@ -24,6 +24,19 @@ describe("Dashboard Summary & Data Export API", () => {
   it("GET /api/v1/dashboard/summary - should return aggregated command center metrics", async () => {
     vi.spyOn(db, "query")
       .mockResolvedValueOnce({
+        rows: [{
+          critical_frp_threshold: "150",
+          anomaly_z_score_threshold: "3",
+          default_map_baselayer: "satellite",
+          updated_at: new Date().toISOString(),
+          updated_by: null,
+        }],
+        rowCount: 1,
+        command: "SELECT",
+        oid: 0,
+        fields: [],
+      }) // system settings
+      .mockResolvedValueOnce({
         rows: [
           {
             total_hotspots: "250",

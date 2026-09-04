@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vites
 import http from "http";
 import express from "express";
 import { io as ClientSocket, Socket as ClientSocketType } from "socket.io-client";
-import { initSocketServer, closeSocketServer, emitAlertCreated, clearEmittedAlertCache } from "../src/realtime/socket";
-import { REALTIME_EVENTS, AlertCreatedPayload } from "../src/realtime/events";
+import { initSocketServer, closeSocketServer, emitAlertCreated, emitClassifiedEventCreated, clearEmittedAlertCache } from "../src/realtime/socket";
+import { REALTIME_EVENTS, AlertCreatedPayload, ClassifiedEventCreatedPayload } from "../src/realtime/events";
 import { signToken } from "../src/utils/jwt";
 import { AlertService } from "../src/services/alert.service";
 import * as db from "../src/db";
@@ -176,6 +176,33 @@ describe("Socket.io Real-Time Alert Server (D6.3)", () => {
     expect(receivedAlert.event?.facility_name).toBe("Bokaro Steel Plant");
     expect(receivedAlert.event?.frp).toBe(210.5);
 
+    client.close();
+  });
+
+  it("should broadcast every newly classified event, even when no alert is created", async () => {
+    const client: ClientSocketType = await new Promise((resolve, reject) => {
+      const c = ClientSocket(`http://localhost:${port}`, {
+        auth: { token: analystToken },
+        transports: ["websocket"],
+      });
+      c.on("connect", () => resolve(c));
+      c.on("connect_error", reject);
+    });
+
+    const payload: ClassifiedEventCreatedPayload = {
+      classified_event_id: "e0000000-0000-0000-0000-000000000004",
+      hotspot_id: "h0000000-0000-0000-0000-000000000004",
+      primary_class: "natural",
+      sub_class: "natural_thermal",
+      is_anomalous: false,
+      created_at: new Date().toISOString(),
+    };
+    const received = new Promise<ClassifiedEventCreatedPayload>((resolve) => {
+      client.on(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED, resolve);
+    });
+
+    expect(emitClassifiedEventCreated(payload)).toBe(true);
+    expect((await received).classified_event_id).toBe(payload.classified_event_id);
     client.close();
   });
 

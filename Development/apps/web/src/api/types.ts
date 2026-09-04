@@ -125,6 +125,7 @@ export interface EventFilterParams extends PaginationParams {
 export interface AlertFilterParams extends PaginationParams {
   severity?: AlertSeverity;
   status?: AlertStatus;
+  active_only?: boolean;
 }
 
 export interface ExportFilterParams {

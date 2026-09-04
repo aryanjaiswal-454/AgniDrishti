@@ -1,4 +1,5 @@
 import { query } from "../db";
+import { SettingsService } from "./settings.service";
 
 export interface DashboardSummary {
   metrics: {
@@ -39,6 +40,7 @@ export class DashboardService {
    * Get aggregated command center metrics and statistics.
    */
   static async getSummary(): Promise<DashboardSummary> {
+    const settings = await SettingsService.getSettings();
     // 1. Overall counts
     const metricsRes = await query<{
       total_hotspots: string;
@@ -63,9 +65,14 @@ export class DashboardService {
       high_severity_alerts: string;
     }>(
       `SELECT
-        COUNT(CASE WHEN status IN ('new', 'acknowledged') THEN 1 END)::text as active_alerts,
-        COUNT(CASE WHEN status = 'new' AND severity = 'high' THEN 1 END)::text as high_severity_alerts
-       FROM alerts;`
+        COUNT(CASE WHEN a.status IN ('new', 'acknowledged')
+                         AND (ce.is_anomalous = true OR ce.sub_class = 'industrial_fire')
+                   THEN 1 END)::text as active_alerts,
+        COUNT(CASE WHEN a.status = 'new' AND a.severity = 'high'
+                         AND (ce.is_anomalous = true OR ce.sub_class = 'industrial_fire')
+                   THEN 1 END)::text as high_severity_alerts
+       FROM alerts a
+       JOIN classified_events ce ON ce.id = a.classified_event_id;`
     );
 
     // 3. Breakdown by sub_class
@@ -140,7 +147,7 @@ export class DashboardService {
       pipeline_metadata: {
         version: process.env.CLASSIFIER_VERSION || "v1.1.0-live-dynamic", // Upgraded version
         strategy: process.env.CLASSIFIER_STRATEGY || "Rules + PostGIS Spatial (Dynamic)", // Stating dynamic PostGIS spatial
-        anomaly_threshold: process.env.CLASSIFIER_ANOMALY_THRESHOLD || "+3.0σ FRP Exceedance (Rolling 90d)" // Clarifying 90d rolling
+        anomaly_threshold: `+${settings.anomaly_z_score_threshold.toFixed(1)}σ FRP Exceedance (Rolling 90d)`
       }
     };
   }

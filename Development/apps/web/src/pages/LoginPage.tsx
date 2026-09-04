@@ -33,7 +33,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     setIsSubmittingEmail(true);
     try {
       await login(email.trim(), password);
-      // Removed manual onNavigate; App.tsx handles redirection after status becomes authenticated
+      // Navigate immediately after Firebase accepts the credential. ProtectedRoute
+      // keeps the command center behind its auth loading state until the backend
+      // profile has finished synchronizing.
+      onNavigate("/command-center");
     } catch (err: any) {
       setFormError(err.message || "Invalid credentials.");
     } finally {
@@ -46,7 +49,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     setFormError(null);
     try {
       await googleLogin();
-      // App.tsx handles redirection after status becomes authenticated
+      // signInWithPopup resolves before the auth observer finishes fetching the
+      // backend profile. Navigating here avoids leaving a successful Google
+      // sign-in stranded on /login; ProtectedRoute safely waits for that sync.
+      onNavigate("/command-center");
     } catch (err: any) {
       setFormError(err.message || "Google authentication failed.");
     } finally {

@@ -7,4 +7,5 @@ export * from "./events";
 export * from "./alerts";
 export * from "./dashboard";
 export * from "./ingestion";
+export * from "./settings";
 

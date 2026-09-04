@@ -42,6 +42,21 @@ export class AlertService {
       values.push(filters.status);
     }
 
+    if (filters.active_only) {
+      // "Active" is an operational view, not just a stored workflow state.
+      // Keep historical alerts and their analyst decisions intact, but surface
+      // only open alerts whose linked event still meets the current policy.
+      // `is_anomalous` is recalculated from the global FRP/Z-score policy;
+      // industrial fires always remain actionable.
+      conditions.push(`a.status IN ('new', 'acknowledged')
+        AND EXISTS (
+          SELECT 1
+          FROM classified_events active_ce
+          WHERE active_ce.id = a.classified_event_id
+            AND (active_ce.is_anomalous = true OR active_ce.sub_class = 'industrial_fire')
+        )`);
+    }
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Count

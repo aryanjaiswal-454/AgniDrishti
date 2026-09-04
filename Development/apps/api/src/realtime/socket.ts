@@ -6,7 +6,8 @@ import { firebaseAuth } from "../config/firebase";
 import { query } from "../db";
 import { User } from "@agnidrishti/shared-types";
 import logger from "../utils/logger";
-import { REALTIME_EVENTS, AlertCreatedPayload, FacilitiesSyncedPayload } from "./events";
+import { REALTIME_EVENTS, AlertCreatedPayload, ClassifiedEventCreatedPayload, FacilitiesSyncedPayload, SystemSettingsUpdatedPayload } from "./events";
+import { publishRealtimeEvent, startRealtimeSubscriber } from "./bus";
 
 export interface AuthenticatedSocketData {
   user: JWTPayload;
@@ -133,6 +134,23 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     });
   });
 
+  // Relay committed events published by the standalone worker service to the
+  // browser clients connected to this API process.
+  startRealtimeSubscriber(({ type, payload }) => {
+    if (!io) return;
+    switch (type) {
+      case REALTIME_EVENTS.ALERT_CREATED:
+        emitAlertCreated(payload as AlertCreatedPayload);
+        break;
+      case REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED:
+        io.emit(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED, payload as ClassifiedEventCreatedPayload);
+        break;
+      case REALTIME_EVENTS.FACILITIES_SYNCED:
+        io.emit(REALTIME_EVENTS.FACILITIES_SYNCED, payload as FacilitiesSyncedPayload);
+        break;
+    }
+  });
+
   return io;
 }
 
@@ -161,8 +179,8 @@ export function clearEmittedAlertCache(): void {
  */
 export function emitAlertCreated(alert: AlertCreatedPayload): boolean {
   if (!io) {
-    logger.warn("[Socket.io] emitAlertCreated called but Socket.io server is not initialized.");
-    return false;
+    publishRealtimeEvent(REALTIME_EVENTS.ALERT_CREATED, alert);
+    return true;
   }
 
   // 1. Idempotency check: avoid duplicate broadcasts on retries
@@ -211,8 +229,8 @@ export async function closeSocketServer(): Promise<void> {
  */
 export function emitFacilitiesSynced(payload: FacilitiesSyncedPayload): boolean {
   if (!io) {
-    logger.warn("[Socket.io] emitFacilitiesSynced called but Socket.io server is not initialized.");
-    return false;
+    publishRealtimeEvent(REALTIME_EVENTS.FACILITIES_SYNCED, payload);
+    return true;
   }
 
   io.emit(REALTIME_EVENTS.FACILITIES_SYNCED, payload);
@@ -220,5 +238,29 @@ export function emitFacilitiesSynced(payload: FacilitiesSyncedPayload): boolean 
   logger.info(
     `[Socket.io] 🌍 Facilities sync broadcast: UPSERTED=${payload.facilities_upserted}, recipients=${io.sockets.sockets.size}`
   );
+  return true;
+}
+
+/** Broadcast a committed policy change so active dashboards refetch together. */
+export function emitSystemSettingsUpdated(payload: SystemSettingsUpdatedPayload): boolean {
+  if (!io) {
+    logger.warn("[Socket.io] Settings update could not be broadcast because Socket.io is not initialized.");
+    return false;
+  }
+
+  io.emit(REALTIME_EVENTS.SYSTEM_SETTINGS_UPDATED, payload);
+  logger.info(`[Socket.io] System settings broadcast to ${io.sockets.sockets.size} recipient(s).`);
+  return true;
+}
+
+/** Notify dashboards when any new event is classified, including normal events. */
+export function emitClassifiedEventCreated(payload: ClassifiedEventCreatedPayload): boolean {
+  if (!io) {
+    publishRealtimeEvent(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED, payload);
+    return true;
+  }
+
+  io.emit(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED, payload);
+  logger.info(`[Socket.io] Classified-event broadcast: eventId=${payload.classified_event_id}, recipients=${io.sockets.sockets.size}`);
   return true;
 }

@@ -69,5 +69,10 @@ export const queryKeys = {
     all: ["ingestion"] as const,
     status: () => [...queryKeys.ingestion.all, "status"] as const,
   },
+
+  settings: {
+    all: ["settings"] as const,
+    current: () => [...queryKeys.settings.all, "current"] as const,
+  },
 };
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const alertQuerySchema = z.object({
   severity: z.enum(["high", "medium", "low"]).optional(),
   status: z.enum(["new", "acknowledged", "resolved", "false_positive"]).optional(),
+  active_only: z.enum(["true", "false"]).transform((value) => value === "true").optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });

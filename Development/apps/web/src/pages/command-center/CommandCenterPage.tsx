@@ -55,7 +55,7 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
     error: alertsError,
     refetch: refetchAlerts,
     isFetching: isAlertsFetching,
-  } = useAlerts({ limit: 10 });
+  } = useAlerts({ limit: 10, active_only: true });
 
   const handleRefreshAll = async () => {
     await Promise.all([refetchSummary(), refetchEvents(), refetchFacilities(), refetchAlerts()]);

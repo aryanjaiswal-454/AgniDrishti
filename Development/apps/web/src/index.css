@@ -164,6 +164,13 @@ html[data-theme="light"] .auth-loading-screen {
   background-image: none !important;
 }
 
+/* The app shell owns the tactical grid. In light mode operational pages use
+   a clean, solid canvas; maps retain their own imagery inside map containers. */
+html[data-theme="light"] .bg-tactical-grid {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
 /* Keep the tactical grid behind content, never inside operational panels. */
 html[data-theme="light"] main .bg-surface-1,
 html[data-theme="light"] main .bg-surface-1 > table,

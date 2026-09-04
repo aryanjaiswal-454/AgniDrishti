@@ -45,7 +45,10 @@ export const TopBar: React.FC<TopBarProps> = ({
     document.documentElement.dataset.theme === "light" ? "light" : "dark"
   );
 
-  const { data: alertsRes } = useAlerts({ limit: 4, status: 'new' });
+  // The bell is a live-threat notification channel, not a history browser.
+  // `active_only` excludes old nominal records that retain a `new` workflow
+  // status for audit/history purposes.
+  const { data: alertsRes } = useAlerts({ limit: 4, active_only: true });
   const unreadAlerts = alertsRes?.data || [];
 
   // Compute initials from user name

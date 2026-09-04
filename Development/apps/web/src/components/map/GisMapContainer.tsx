@@ -16,6 +16,7 @@ import { MapViewportController } from "./controls/MapViewportController";
 import { MapInvestigationDrawer } from "./panels/MapInvestigationDrawer";
 import { Skeleton } from "../ui";
 import { Maximize2, Minimize2 } from "lucide-react";
+import { useSystemSettings } from "../../hooks/useSettings";
 
 export interface GisMapContainerProps {
   events: EventDetail[];
@@ -39,6 +40,8 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
   enableInvestigationPanel = true,
 }) => {
   const [baseMapMode, setBaseMapMode] = useState<BaseMapMode>("satellite");
+  const { data: settingsRes } = useSystemSettings();
+  const configuredBaseMap = settingsRes?.data.default_map_baselayer;
   const [clusteringEnabled, setClusteringEnabled] = useState<boolean>(false);
   const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_INDIA_VIEWPORT.zoom);
   const [selection, setSelection] = useState<MapSelection>(null);
@@ -51,6 +54,11 @@ export const GisMapContainer: React.FC<GisMapContainerProps> = ({
     facilities: true,
     anomalies: anomaliesOnlyFilter,
   });
+
+  // The global admin preference applies immediately to every mounted map.
+  useEffect(() => {
+    if (configuredBaseMap) setBaseMapMode(configuredBaseMap);
+  }, [configuredBaseMap]);
 
   // 1. Transform raw DTOs into normalized map markers
   const thermalMarkers = useMemo(() => {

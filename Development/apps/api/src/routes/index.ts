@@ -7,6 +7,7 @@ import alertRoutes from "./alert.routes";
 import dashboardRoutes from "./dashboard.routes";
 import exportRoutes from "./export.routes";
 import ingestionRoutes from "./ingestion.routes";
+import settingsRoutes from "./settings.routes";
 
 const apiRouter = Router();
 
@@ -19,6 +20,7 @@ apiRouter.use("/alerts", alertRoutes);
 apiRouter.use("/dashboard", dashboardRoutes);
 apiRouter.use("/export", exportRoutes);
 apiRouter.use("/ingestion", ingestionRoutes);
+apiRouter.use("/settings", settingsRoutes);
 
 export default apiRouter;
 

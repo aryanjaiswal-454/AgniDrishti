@@ -42,7 +42,8 @@ const SEVERITY_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "active", label: "Live Policy Alerts" },
+  { value: "", label: "All Statuses (Including History)" },
   { value: "new", label: "New (Unacknowledged)" },
   { value: "acknowledged", label: "Acknowledged" },
   { value: "resolved", label: "Resolved" },
@@ -53,7 +54,7 @@ const PAGE_SIZE = 25;
 
 export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | "">("");
-  const [statusFilter, setStatusFilter] = useState<AlertStatus | "">("");
+  const [statusFilter, setStatusFilter] = useState<AlertStatus | "active" | "">("active");
   const [pageOffset, setPageOffset] = useState<number>(0);
 
   // Selected alert for inspector drawer
@@ -66,7 +67,8 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
       offset: pageOffset,
     };
     if (severityFilter) params.severity = severityFilter;
-    if (statusFilter) params.status = statusFilter;
+    if (statusFilter === "active") params.active_only = true;
+    else if (statusFilter) params.status = statusFilter;
     return params;
   }, [severityFilter, statusFilter, pageOffset]);
 
@@ -75,11 +77,11 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
   const alerts = data?.data || [];
   const totalCount = data?.meta?.total ?? data?.pagination?.total ?? alerts.length;
 
-  const isFiltered = Boolean(severityFilter || statusFilter);
+  const isFiltered = Boolean(severityFilter || (statusFilter && statusFilter !== "active"));
 
   const handleClearFilters = () => {
     setSeverityFilter("");
-    setStatusFilter("");
+    setStatusFilter("active");
     setPageOffset(0);
   };
 
@@ -211,7 +213,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
               options={STATUS_OPTIONS}
               value={statusFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value as AlertStatus | "");
+                setStatusFilter(e.target.value as AlertStatus | "active" | "");
                 setPageOffset(0);
               }}
               className="font-mono text-xs"

@@ -5,6 +5,8 @@ import redisConnection from "../queues/connection";
 import { withTransaction, query } from "../db";
 import logger from "../utils/logger";
 import { AlertService } from "../services/alert.service";
+import { SettingsService } from "../services/settings.service";
+import { emitClassifiedEventCreated } from "../realtime/socket";
 
 interface ClassifyHotspotJob {
   hotspot_id: string;
@@ -33,6 +35,7 @@ export function createClassificationWorker(): Worker {
       }
 
       const dbHotspot = dbHotspotRes.rows[0];
+      const policy = await SettingsService.getSettings();
 
       // We send it to the Python FastAPI Classifier service
       const CLASSIFIER_URL = (process.env.CLASSIFIER_URL || config.classifier.url).replace(/\/+$/, "");
@@ -80,15 +83,21 @@ export function createClassificationWorker(): Worker {
         }
 
         const result = data.results[0];
+        const zScoreFrp = result.z_score_frp ?? null;
+        const exceedsZScoreThreshold = zScoreFrp !== null
+          ? Number(zScoreFrp) >= policy.anomaly_z_score_threshold
+          : Boolean(result.is_anomalous);
+        const isCriticalFrp = Number(dbHotspot.frp ?? 0) >= policy.critical_frp_threshold;
+        const isAnomalous = exceedsZScoreThreshold || isCriticalFrp;
 
         // Persist the classified event first. AlertService uses the pool rather
         // than this transaction client, so alert creation must happen after the
         // event commit or its foreign-key check can block on uncommitted data.
-        const eventId = await withTransaction(async (client) => {
+        const classification = await withTransaction(async (client) => {
           // Check if already exists to avoid duplicates if job is retried
           const existing = await client.query(`SELECT id FROM classified_events WHERE hotspot_id = $1`, [result.hotspot_id]);
           if (existing.rows.length > 0) {
-             return existing.rows[0].id as string;
+             return { id: existing.rows[0].id as string, created: false };
           }
 
           const insertRes = await client.query(
@@ -105,24 +114,36 @@ export function createClassificationWorker(): Worker {
               result.land_cover_type || null,
               result.distance_to_facility_m ?? null,
               result.recurrence_count_90d || 0,
-              result.z_score_frp ?? null,
+              zScoreFrp,
               result.confidence_score ?? 0.0,
               result.model_version || "unknown",
-              result.is_anomalous || false
+              isAnomalous
             ]
           );
 
-          return insertRes.rows[0].id as string;
+          return { id: insertRes.rows[0].id as string, created: true };
         });
+        const eventId = classification.id;
 
         // D7: alerts are created after commit. On a retry, avoid creating a
         // second alert for an already-classified event.
-        if (result.is_anomalous || result.sub_class === 'industrial_fire') {
+        if (isAnomalous || result.sub_class === 'industrial_fire' || isCriticalFrp) {
           const existingAlert = await query("SELECT id FROM alerts WHERE classified_event_id = $1 LIMIT 1", [eventId]);
           if (existingAlert.rows.length === 0) {
-            const severity = result.sub_class === 'industrial_fire' ? 'high' : 'medium';
+            const severity = result.sub_class === 'industrial_fire' || isCriticalFrp ? 'high' : 'medium';
             await AlertService.createAlert({ classified_event_id: eventId, severity: severity as any, status: "new" });
           }
+        }
+
+        if (classification.created) {
+          emitClassifiedEventCreated({
+            classified_event_id: eventId,
+            hotspot_id: dbHotspot.id,
+            primary_class: result.primary_class,
+            sub_class: result.sub_class,
+            is_anomalous: isAnomalous,
+            created_at: new Date().toISOString(),
+          });
         }
 
         logger.info(`✅ Successfully classified and saved hotspot ${dbHotspot.id}`);

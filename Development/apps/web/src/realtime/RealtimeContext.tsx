@@ -7,8 +7,10 @@ import { createSocketClient } from "./socket";
 import {
   REALTIME_EVENTS,
   AlertCreatedPayload,
+  ClassifiedEventCreatedPayload,
   ConnectionStatus,
   FacilitiesSyncedPayload,
+  SystemSettingsUpdatedPayload,
 } from "./events";
 import { AlertToastContainer } from "./AlertToastContainer";
 import { auth } from "../lib/firebase";
@@ -125,8 +127,12 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
           queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(alert.classified_event_id) });
         }
 
-        // Toasts are reserved for urgent alerts; lower severities still refresh map data above.
-        if (alert.severity === "high") {
+        // Toasts are reserved for actionable high-priority threats. The server
+        // enforces this too; this client check prevents stale/history events
+        // from ever surfacing as a notification after reconnecting.
+        const isActionable = Boolean(alert.event?.is_anomalous)
+          || alert.event?.sub_class === "industrial_fire";
+        if (alert.severity === "high" && isActionable) {
           setLastAlert(alert);
           setToasts((prev) => [alert, ...prev.slice(0, 2)]);
         }
@@ -139,6 +145,23 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
         queryClient.invalidateQueries({ queryKey: queryKeys.ingestion.status() });
       });
 
+      // Normal classified events do not always create an alert. They still
+      // change the map, event registry, facility context, and KPI totals.
+      newSocket.on(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED, (_event: ClassifiedEventCreatedPayload) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.facilities.all });
+      });
+
+      newSocket.on(REALTIME_EVENTS.SYSTEM_SETTINGS_UPDATED, (_payload: SystemSettingsUpdatedPayload) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.events.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.facilities.all });
+      });
+
       newSocket.connect();
     };
 
@@ -148,7 +171,9 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
       isMounted = false;
       if (localSocket) {
         localSocket.off(REALTIME_EVENTS.ALERT_CREATED);
+        localSocket.off(REALTIME_EVENTS.CLASSIFIED_EVENT_CREATED);
         localSocket.off(REALTIME_EVENTS.FACILITIES_SYNCED);
+        localSocket.off(REALTIME_EVENTS.SYSTEM_SETTINGS_UPDATED);
         localSocket.disconnect();
       }
       setSocket(null);

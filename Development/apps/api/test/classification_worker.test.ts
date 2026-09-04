@@ -4,6 +4,7 @@ const processorRef = vi.hoisted(() => ({ current: undefined as undefined | ((job
 const databaseMocks = vi.hoisted(() => ({ query: vi.fn(), withTransaction: vi.fn() }));
 const axiosPost = vi.hoisted(() => vi.fn());
 const createAlert = vi.hoisted(() => vi.fn());
+const emitClassifiedEventCreated = vi.hoisted(() => vi.fn());
 
 vi.mock("bullmq", () => ({
   Worker: class {
@@ -17,6 +18,16 @@ vi.mock("axios", () => ({ default: { post: axiosPost } }));
 vi.mock("../src/db", () => databaseMocks);
 vi.mock("../src/queues/connection", () => ({ default: {} }));
 vi.mock("../src/services/alert.service", () => ({ AlertService: { createAlert } }));
+vi.mock("../src/services/settings.service", () => ({
+  SettingsService: {
+    getSettings: vi.fn().mockResolvedValue({
+      critical_frp_threshold: 150,
+      anomaly_z_score_threshold: 3,
+      default_map_baselayer: "satellite",
+    }),
+  },
+}));
+vi.mock("../src/realtime/socket", () => ({ emitClassifiedEventCreated }));
 
 import { createClassificationWorker } from "../src/workers/classification.worker";
 
@@ -59,5 +70,11 @@ describe("classification worker alert transaction boundary", () => {
 
     expect(sequence).toEqual(["begin", "commit", "alert-check", "create-alert"]);
     expect(createAlert).toHaveBeenCalledWith({ classified_event_id: "event-1", severity: "high", status: "new" });
+    expect(emitClassifiedEventCreated).toHaveBeenCalledWith(expect.objectContaining({
+      classified_event_id: "event-1",
+      hotspot_id: "hotspot-1",
+      sub_class: "industrial_fire",
+      is_anomalous: true,
+    }));
   });
 });
