@@ -73,7 +73,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
   const { data, isLoading, error, refetch, isFetching } = useAlerts(queryParams);
 
   const alerts = data?.data || [];
-  const totalCount = (data as any)?.total ?? (data as any)?.pagination?.total ?? alerts.length;
+  const totalCount = data?.meta?.total ?? data?.pagination?.total ?? alerts.length;
 
   const isFiltered = Boolean(severityFilter || statusFilter);
 
@@ -90,6 +90,10 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
 
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
+  };
+
+  const handleAlertUpdated = (updatedAlert: AlertWithDetails) => {
+    setSelectedAlert(updatedAlert);
   };
 
   // KPI Summary calculations derived from returned dataset
@@ -472,6 +476,7 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({ onNavigate }) => {
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
         onNavigate={onNavigate}
+        onAlertUpdated={handleAlertUpdated}
       />
     </PageContainer>
   );

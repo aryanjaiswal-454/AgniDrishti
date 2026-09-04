@@ -1,7 +1,7 @@
 import { query } from "../db";
 import { AlertQueryInput, UpdateAlertStatusInput } from "../schemas/alert.schema";
 import { Alert, AlertSeverity, AlertStatus, ClassifiedEvent } from "@agnidrishti/shared-types";
-import { NotFoundError } from "../utils/errors";
+import { ConflictError, NotFoundError } from "../utils/errors";
 import { emitAlertCreated } from "../realtime/socket";
 import { AlertCreatedPayload } from "../realtime/events";
 import logger from "../utils/logger";
@@ -235,9 +235,37 @@ export class AlertService {
     input: UpdateAlertStatusInput,
     userId: string
   ): Promise<Alert> {
-    const existing = await query("SELECT id FROM alerts WHERE id = $1;", [id]);
+    const existing = await query<{ id: string; status: AlertStatus }>(
+      "SELECT id, status FROM alerts WHERE id = $1;",
+      [id]
+    );
     if (existing.rows.length === 0) {
       throw new NotFoundError(`Alert with ID ${id} not found`);
+    }
+
+    const currentStatus = existing.rows[0].status;
+
+    // An alert is a one-way triage workflow.  Terminal decisions must not be
+    // overwritten accidentally by a second click or a stale browser tab.
+    if (currentStatus === "resolved" || currentStatus === "false_positive") {
+      if (currentStatus === input.status) {
+        const current = await query<Alert>(
+          `SELECT id, classified_event_id, severity, status, sent_at, acknowledged_by
+           FROM alerts WHERE id = $1;`,
+          [id]
+        );
+        return current.rows[0];
+      }
+      throw new ConflictError(`Alert is already closed as '${currentStatus}' and cannot be changed.`);
+    }
+
+    const allowedTransitions: Record<"new" | "acknowledged", AlertStatus[]> = {
+      new: ["acknowledged", "resolved", "false_positive"],
+      acknowledged: ["resolved", "false_positive"],
+    };
+
+    if (input.status === "new" || !allowedTransitions[currentStatus as "new" | "acknowledged"].includes(input.status)) {
+      throw new ConflictError(`Cannot change alert status from '${currentStatus}' to '${input.status}'.`);
     }
 
     const res = await query<Alert>(

@@ -43,7 +43,7 @@ describe("Role-Based Access Control (RBAC) Enforcement", () => {
 
   it("PATCH /api/v1/alerts/:id - should ALLOW an analyst to update an alert", async () => {
     vi.spyOn(db, "query")
-      .mockResolvedValueOnce({ rows: [{ id: testAlertId }], rowCount: 1, command: "SELECT", oid: 0, fields: [] })
+      .mockResolvedValueOnce({ rows: [{ id: testAlertId, status: "new" }], rowCount: 1, command: "SELECT", oid: 0, fields: [] })
       .mockResolvedValueOnce({
         rows: [{ id: testAlertId, classified_event_id: testEventId, severity: "high", status: "acknowledged", sent_at: new Date().toISOString(), acknowledged_by: "analyst-id" }],
         rowCount: 1,
@@ -60,6 +60,24 @@ describe("Role-Based Access Control (RBAC) Enforcement", () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.status).toBe("acknowledged");
+  });
+
+  it("PATCH /api/v1/alerts/:id - should BLOCK changing a closed alert", async () => {
+    vi.spyOn(db, "query").mockResolvedValueOnce({
+      rows: [{ id: testAlertId, status: "resolved" }],
+      rowCount: 1,
+      command: "SELECT",
+      oid: 0,
+      fields: [],
+    });
+
+    const res = await request(app)
+      .patch(`/api/v1/alerts/${testAlertId}`)
+      .set("Authorization", `Bearer ${analystToken}`)
+      .send({ status: "false_positive" });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe("CONFLICT_ERROR");
   });
 
   it("POST /api/v1/events/:id/feedback - should BLOCK a viewer from submitting feedback", async () => {

@@ -79,7 +79,9 @@ export interface ApiResponse<T> {
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
-  pagination: PaginationMeta;
+  /** API controllers return `meta`; `pagination` remains supported for compatibility. */
+  meta?: PaginationMeta;
+  pagination?: PaginationMeta;
 }
 
 /**

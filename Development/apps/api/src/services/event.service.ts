@@ -54,12 +54,24 @@ export class EventService {
     }
 
     if (filters.state) {
-      conditions.push(`f.state ILIKE $${idx++}`);
+      // Events outside the 5 km association threshold do not have facility_id,
+      // but still need to be discoverable by the state of their nearest asset.
+      conditions.push(`COALESCE(f.state, (
+        SELECT candidate.state
+        FROM facilities candidate
+        ORDER BY ST_Distance(candidate.geometry::geography, h.geometry::geography), candidate.id
+        LIMIT 1
+      )) ILIKE $${idx++}`);
       values.push(`%${filters.state}%`);
     }
 
     if (filters.district) {
-      conditions.push(`f.district ILIKE $${idx++}`);
+      conditions.push(`COALESCE(f.district, (
+        SELECT candidate.district
+        FROM facilities candidate
+        ORDER BY ST_Distance(candidate.geometry::geography, h.geometry::geography), candidate.id
+        LIMIT 1
+      )) ILIKE $${idx++}`);
       values.push(`%${filters.district}%`);
     }
 
@@ -79,14 +91,14 @@ export class EventService {
        JOIN hotspots h ON ce.hotspot_id = h.id
        LEFT JOIN facilities f ON ce.facility_id = f.id
        ${whereClause};`,
-      values
+      [...values]
     );
     const total = parseInt(countRes.rows[0]?.count || "0", 10);
 
     // Results
     const limit = filters.limit;
     const offset = filters.offset;
-    values.push(limit, offset);
+    const listValues = [...values, limit, offset];
 
     const eventsRes = await query<any>(
       `SELECT
@@ -146,7 +158,7 @@ export class EventService {
        ${whereClause}
        ORDER BY ce.created_at DESC, h.acq_date DESC
        LIMIT $${idx++} OFFSET $${idx++};`,
-      values
+      listValues
     );
 
     const formattedEvents: ClassifiedEventWithDetails[] = eventsRes.rows.map((row) => ({

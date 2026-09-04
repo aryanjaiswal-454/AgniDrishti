@@ -333,6 +333,16 @@ export const ThermalEventsPage: React.FC<ThermalEventsPageProps> = ({ onNavigate
                     To: {endDate}
                   </span>
                 )}
+                {stateFilter && (
+                  <span className="px-2 py-0.5 rounded bg-surface-2 border border-border-subtle text-text-primary text-[11px]">
+                    State: {stateFilter}
+                  </span>
+                )}
+                {districtFilter && (
+                  <span className="px-2 py-0.5 rounded bg-surface-2 border border-border-subtle text-text-primary text-[11px]">
+                    District: {districtFilter}
+                  </span>
+                )}
               </div>
 
               <Button

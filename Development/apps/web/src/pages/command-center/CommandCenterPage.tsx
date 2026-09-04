@@ -39,12 +39,14 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
     data: eventsRes,
     isLoading: isEventsLoading,
     refetch: refetchEvents,
+    isFetching: isEventsFetching,
   } = useEvents({ limit: 100 });
 
   const {
     data: facilitiesRes,
     isLoading: isFacilitiesLoading,
     refetch: refetchFacilities,
+    isFetching: isFacilitiesFetching,
   } = useFacilities({ limit: 100 });
 
   const {
@@ -52,14 +54,14 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
     isLoading: isAlertsLoading,
     error: alertsError,
     refetch: refetchAlerts,
+    isFetching: isAlertsFetching,
   } = useAlerts({ limit: 10 });
 
-  const handleRefreshAll = () => {
-    refetchSummary();
-    refetchEvents();
-    refetchFacilities();
-    refetchAlerts();
+  const handleRefreshAll = async () => {
+    await Promise.all([refetchSummary(), refetchEvents(), refetchFacilities(), refetchAlerts()]);
   };
+
+  const isRefreshing = isSummaryFetching || isEventsFetching || isFacilitiesFetching || isAlertsFetching;
 
   const handleSelectAlert = (alert: AlertWithDetails) => {
     setSelectedAlert(alert);
@@ -129,9 +131,9 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
             <Button
               variant="secondary"
               size="sm"
-              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isSummaryFetching ? "animate-spin" : ""}`} />}
+              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />}
               onClick={handleRefreshAll}
-              disabled={isSummaryFetching}
+              disabled={isRefreshing}
             >
               Refresh
             </Button>
@@ -195,6 +197,7 @@ export const CommandCenterPage: React.FC<CommandCenterPageProps> = ({ onNavigate
         isOpen={isAlertDrawerOpen}
         onClose={() => setIsAlertDrawerOpen(false)}
         onNavigate={onNavigate}
+        onAlertUpdated={setSelectedAlert}
       />
     </PageContainer>
   );

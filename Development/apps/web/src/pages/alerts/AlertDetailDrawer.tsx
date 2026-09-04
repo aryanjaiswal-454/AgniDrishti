@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Drawer, Button, ConfidenceIndicator, Modal } from "../../components/ui";
 import { AlertWithDetails } from "../../api/alerts";
 import { AlertSeverityBadge, AlertLifecycleBadge } from "./AlertSeverityBadge";
@@ -23,6 +23,7 @@ export interface AlertDetailDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (route: string) => void;
+  onAlertUpdated?: (alert: AlertWithDetails) => void;
 }
 
 export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
@@ -30,12 +31,19 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
   isOpen,
   onClose,
   onNavigate,
+  onAlertUpdated,
 }) => {
   const { user } = useCurrentUser();
   const updateStatusMutation = useUpdateAlertStatus();
 
   // Confirmation modal state for destructive transitions (resolve / false positive)
   const [confirmAction, setConfirmAction] = useState<"resolved" | "false_positive" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setConfirmAction(null);
+    setActionError(null);
+  }, [alert?.id, isOpen]);
 
   if (!alert) return null;
 
@@ -44,13 +52,21 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
 
   const handleAction = async (status: "acknowledged" | "resolved" | "false_positive") => {
     try {
-      await updateStatusMutation.mutateAsync({
+      setActionError(null);
+      const result = await updateStatusMutation.mutateAsync({
         id: alert.id,
         status,
       });
+      onAlertUpdated?.({
+        ...alert,
+        status: result.data.status,
+        acknowledged_by: result.data.acknowledged_by,
+        acknowledged_by_name: user?.name || alert.acknowledged_by_name,
+      });
       setConfirmAction(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update alert status:", err);
+      setActionError(err?.userFriendlyMessage || err?.message || "The alert status could not be updated. Please try again.");
     }
   };
 
@@ -111,7 +127,7 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
               </span>
             </div>
 
-            {isAnalystOrAdmin ? (
+            {isAnalystOrAdmin && (alert.status === "new" || alert.status === "acknowledged") ? (
               <div className="space-y-2.5">
                 <div className="flex flex-wrap items-center gap-2">
                   {alert.status === "new" && (
@@ -126,36 +142,42 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
                     </Button>
                   )}
 
-                  {alert.status !== "resolved" && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-status-success" />}
-                      isLoading={updateStatusMutation.isPending}
-                      onClick={() => setConfirmAction("resolved")}
-                    >
-                      Resolve Incident
-                    </Button>
-                  )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-status-success" />}
+                    isLoading={updateStatusMutation.isPending}
+                    onClick={() => setConfirmAction("resolved")}
+                  >
+                    Resolve Incident
+                  </Button>
 
-                  {alert.status !== "false_positive" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={<XCircle className="w-3.5 h-3.5 text-text-muted" />}
-                      isLoading={updateStatusMutation.isPending}
-                      onClick={() => setConfirmAction("false_positive")}
-                    >
-                      Mark False Positive
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={<XCircle className="w-3.5 h-3.5 text-text-muted" />}
+                    isLoading={updateStatusMutation.isPending}
+                    onClick={() => setConfirmAction("false_positive")}
+                  >
+                    Mark False Positive
+                  </Button>
                 </div>
+
+                {actionError && (
+                  <div role="alert" className="rounded border border-status-critical/40 bg-status-critical/10 px-2.5 py-2 text-[11px] font-mono text-status-critical">
+                    {actionError}
+                  </div>
+                )}
 
                 {alert.acknowledged_by_name && (
                   <div className="text-[11px] font-mono text-text-muted pt-1">
                     Acknowledged by: <span className="text-text-primary font-semibold">{alert.acknowledged_by_name}</span>
                   </div>
                 )}
+              </div>
+            ) : isAnalystOrAdmin ? (
+              <div className="p-2.5 rounded bg-surface-2 text-xs font-mono text-text-muted">
+                This alert is closed as {alert.status === "resolved" ? "resolved" : "a false positive"}. No further triage action is available.
               </div>
             ) : (
               <div className="p-2.5 rounded bg-surface-2 text-xs font-mono text-text-muted">
@@ -235,7 +257,7 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
               </div>
             ) : (
               <div className="text-xs font-mono text-text-muted">
-                No registered industrial infrastructure intersects the 1,000m buffer zone.
+                No registered industrial infrastructure intersects the 5 km association range.
               </div>
             )}
           </div>
